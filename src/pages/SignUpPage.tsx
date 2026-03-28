@@ -4,12 +4,24 @@ import { Label } from "../components/ui/label";
 import { Checkbox } from "../components/ui/checkbox";
 import { Clock } from "lucide-react";
 import type { PageType } from "../App";
+import { useAuth } from "../contexts/AuthContext";
 
 interface SignUpPageProps {
   onNavigate?: (page: PageType) => void;
 }
 
 export function SignUpPage({ onNavigate }: SignUpPageProps) {
+  const { login } = useAuth();
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const form = e.currentTarget as HTMLFormElement;
+    const fd = new FormData(form);
+    const name = String(fd.get("name") || "User").trim();
+    const email = String(fd.get("email") || "user@example.com").trim();
+    login({ name, email });
+    onNavigate?.("dashboard");
+  };
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-500 via-purple-600 to-indigo-700 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
@@ -30,43 +42,53 @@ export function SignUpPage({ onNavigate }: SignUpPageProps) {
 
         {/* Sign Up Form */}
         <div className="bg-white rounded-3xl shadow-2xl p-8">
-          <form className="space-y-5">
+          <form className="space-y-5" onSubmit={handleSubmit}>
             <div>
               <Label htmlFor="name">Full Name</Label>
-              <Input 
+              <Input
                 id="name"
+                name="name"
                 placeholder="John Doe"
                 className="mt-2"
+                required
+                autoComplete="name"
               />
             </div>
 
             <div>
               <Label htmlFor="email">Email</Label>
-              <Input 
+              <Input
                 id="email"
+                name="email"
                 type="email"
                 placeholder="john@example.com"
                 className="mt-2"
+                required
+                autoComplete="email"
               />
             </div>
 
             <div>
               <Label htmlFor="password">Password</Label>
-              <Input 
+              <Input
                 id="password"
+                name="password"
                 type="password"
                 placeholder="••••••••"
                 className="mt-2"
+                autoComplete="new-password"
               />
             </div>
 
             <div>
               <Label htmlFor="confirm-password">Confirm Password</Label>
-              <Input 
+              <Input
                 id="confirm-password"
+                name="confirm-password"
                 type="password"
                 placeholder="••••••••"
                 className="mt-2"
+                autoComplete="new-password"
               />
             </div>
 
@@ -80,13 +102,9 @@ export function SignUpPage({ onNavigate }: SignUpPageProps) {
               </label>
             </div>
 
-            <Button 
+            <Button
               type="submit"
               className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-6"
-              onClick={(e) => {
-                e.preventDefault();
-                onNavigate?.("dashboard");
-              }}
             >
               Create Account
             </Button>

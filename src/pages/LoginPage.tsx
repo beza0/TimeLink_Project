@@ -4,12 +4,29 @@ import { Label } from "../components/ui/label";
 import { Checkbox } from "../components/ui/checkbox";
 import { Clock } from "lucide-react";
 import type { PageType } from "../App";
+import { useAuth } from "../contexts/AuthContext";
 
 interface LoginPageProps {
   onNavigate?: (page: PageType) => void;
+  /** Girişten sonra açılacak sayfa (ör. korumalı sayfaya yönlendirme). */
+  returnTo?: PageType;
 }
 
-export function LoginPage({ onNavigate }: LoginPageProps) {
+export function LoginPage({
+  onNavigate,
+  returnTo = "dashboard",
+}: LoginPageProps) {
+  const { login } = useAuth();
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const form = e.currentTarget as HTMLFormElement;
+    const fd = new FormData(form);
+    const email = String(fd.get("email") || "user@example.com").trim();
+    const local = email.split("@")[0] || "User";
+    login({ name: local.charAt(0).toUpperCase() + local.slice(1), email });
+    onNavigate?.(returnTo);
+  };
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-500 via-purple-600 to-indigo-700 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
@@ -30,21 +47,24 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
 
         {/* Login Form */}
         <div className="bg-white rounded-3xl shadow-2xl p-8">
-          <form className="space-y-5">
+          <form className="space-y-5" onSubmit={handleSubmit}>
             <div>
               <Label htmlFor="email">Email</Label>
-              <Input 
+              <Input
                 id="email"
+                name="email"
                 type="email"
                 placeholder="john@example.com"
                 className="mt-2"
+                required
+                autoComplete="email"
               />
             </div>
 
             <div>
               <div className="flex items-center justify-between">
                 <Label htmlFor="password">Password</Label>
-                <button 
+                <button
                   type="button"
                   onClick={() => onNavigate?.("forgot-password")}
                   className="text-sm text-purple-600 hover:underline"
@@ -52,11 +72,13 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
                   Forgot?
                 </button>
               </div>
-              <Input 
+              <Input
                 id="password"
+                name="password"
                 type="password"
                 placeholder="••••••••"
                 className="mt-2"
+                autoComplete="current-password"
               />
             </div>
 
@@ -67,13 +89,9 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
               </label>
             </div>
 
-            <Button 
+            <Button
               type="submit"
               className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-6"
-              onClick={(e) => {
-                e.preventDefault();
-                onNavigate?.("dashboard");
-              }}
             >
               Sign In
             </Button>

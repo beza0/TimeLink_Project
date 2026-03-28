@@ -3522,3 +3522,36 @@ html {
     transform: translate3d(var(--tw-exit-translate-x, 0), var(--tw-exit-translate-y, 0), 0) scale3d(var(--tw-exit-scale, 1), var(--tw-exit-scale, 1), var(--tw-exit-scale, 1)) rotate(var(--tw-exit-rotate, 0));
   }
 }
+
+@media (hover: hover) {
+  .sidebar-nav-item:hover {
+    background-color: var(--accent);
+    color: var(--primary);
+  }
+}
+
+/* Navbar: tek satır menü yalnızca geniş ekranda; dar pencerede hamburger + sidebar */
+.nav-xl-row {
+  display: none;
+}
+
+.nav-xl-menu-btn {
+  align-items: center;
+  display: flex;
+}
+
+@media (width >= 80rem) {
+  .nav-xl-row {
+    align-items: center;
+    display: flex !important;
+    flex-wrap: nowrap;
+  }
+
+  .nav-xl-menu-btn {
+    display: none !important;
+  }
+
+  .nav-xl-sidebar-host {
+    display: none !important;
+  }
+}

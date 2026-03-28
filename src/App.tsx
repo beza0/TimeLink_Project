@@ -13,13 +13,14 @@ import { LoginPage } from "./pages/LoginPage";
 import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
 import { ResetPasswordPage } from "./pages/ResetPasswordPage";
 import { SkillDetailPage } from "./pages/SkillDetailPage";
+import { useAuth, pageRequiresAuth } from "./contexts/AuthContext";
 
 // Basit routing sistemi - sayfalar arası geçiş için
-export type PageType = 
-  | "landing" 
-  | "browse" 
-  | "dashboard" 
-  | "profile" 
+export type PageType =
+  | "landing"
+  | "browse"
+  | "dashboard"
+  | "profile"
   | "how-it-works"
   | "add-skill"
   | "past-sessions"
@@ -33,8 +34,15 @@ export type PageType =
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState<PageType>("landing");
+  const { isAuthenticated } = useAuth();
 
   const renderPage = () => {
+    if (pageRequiresAuth(currentPage) && !isAuthenticated) {
+      return (
+        <LoginPage onNavigate={setCurrentPage} returnTo={currentPage} />
+      );
+    }
+
     switch (currentPage) {
       case "landing":
         return <LandingPage onNavigate={setCurrentPage} />;
@@ -55,8 +63,14 @@ export default function App() {
       case "messages":
         return <MessagesPage onNavigate={setCurrentPage} />;
       case "signup":
+        if (isAuthenticated) {
+          return <DashboardPage onNavigate={setCurrentPage} />;
+        }
         return <SignUpPage onNavigate={setCurrentPage} />;
       case "login":
+        if (isAuthenticated) {
+          return <DashboardPage onNavigate={setCurrentPage} />;
+        }
         return <LoginPage onNavigate={setCurrentPage} />;
       case "forgot-password":
         return <ForgotPasswordPage onNavigate={setCurrentPage} />;
