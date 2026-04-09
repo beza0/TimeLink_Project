@@ -16,7 +16,7 @@ import { Search, SlidersHorizontal } from "lucide-react";
 import { useState, useMemo, useEffect, useLayoutEffect, useRef } from "react";
 import type { PageType } from "../App";
 import { useLanguage } from "../contexts/LanguageContext";
-import { formatTemplate } from "../i18n/messages";
+import { formatTemplate } from "../language";
 
 interface BrowsePageProps {
   onNavigate?: (page: PageType) => void;
@@ -302,7 +302,7 @@ export function BrowsePage({ onNavigate }: BrowsePageProps) {
   };
 
   return (
-    <PageLayout onNavigate={onNavigate} className="min-h-screen bg-gray-50">
+    <PageLayout onNavigate={onNavigate}>
       
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-500 to-purple-600 pt-24 pb-12 px-4 sm:px-6 lg:px-8">
@@ -317,16 +317,16 @@ export function BrowsePage({ onNavigate }: BrowsePageProps) {
           {/* Search Bar */}
           <div className="flex gap-3">
             <div className="flex-1 relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <Search className="absolute left-4 top-1/2 w-5 h-5 -translate-y-1/2 text-muted-foreground" />
               <Input 
                 placeholder={b.searchPlaceholder}
-                className="pl-12 h-12 bg-white border-0 rounded-xl shadow-lg"
+                className="h-12 rounded-xl border-0 bg-input-background pl-12 text-foreground shadow-lg"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
             <Button 
-              className="md:hidden bg-white text-purple-600 hover:bg-gray-100 h-12 px-4"
+              className="h-12 bg-input-background px-4 text-primary hover:bg-accent md:hidden"
               onClick={() => setShowMobileFilters(!showMobileFilters)}
             >
               <SlidersHorizontal className="w-5 h-5" />
@@ -353,7 +353,7 @@ export function BrowsePage({ onNavigate }: BrowsePageProps) {
           {/* Skills Grid */}
           <div className="lg:col-span-3">
             <div className="mb-6 flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-              <p className="min-w-0 flex-1 text-left text-sm text-gray-600 sm:text-base">
+              <p className="min-w-0 flex-1 text-left text-sm text-muted-foreground sm:text-base">
                 {filteredSkills.length === 0
                   ? formatTemplate(b.noMatches, { total: mockSkills.length })
                   : formatTemplate(b.showing, {
@@ -365,7 +365,7 @@ export function BrowsePage({ onNavigate }: BrowsePageProps) {
               <div className="ml-auto flex w-fit max-w-full shrink-0 flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-2.5">
                 <Label
                   htmlFor="browse-sort"
-                  className="shrink-0 whitespace-nowrap text-xs font-medium text-gray-600"
+                  className="shrink-0 whitespace-nowrap text-xs font-medium text-muted-foreground"
                 >
                   {b.sortBy}
                 </Label>
@@ -375,11 +375,11 @@ export function BrowsePage({ onNavigate }: BrowsePageProps) {
                 >
                   <SelectTrigger
                     id="browse-sort"
-                    className="h-9 w-[min(100%,10.5rem)] shrink-0 gap-2 rounded-lg border border-gray-200 bg-white py-0 pl-3.5 pr-3 text-left text-sm shadow-sm [&_svg]:ml-0.5"
+                    className="h-9 w-[min(100%,10.5rem)] shrink-0 gap-2 rounded-lg border border-border bg-input-background py-0 pl-3.5 pr-3 text-left text-sm text-foreground shadow-sm [&_svg]:ml-0.5"
                   >
                     <SelectValue placeholder={b.sortPlaceholder} />
                   </SelectTrigger>
-                  <SelectContent position="popper" align="end" className="rounded-lg border-gray-200 shadow-lg">
+                  <SelectContent position="popper" align="end" className="rounded-lg border-border bg-popover text-popover-foreground shadow-lg">
                     <SelectItem value="relevant">{b.sortRelevant}</SelectItem>
                     <SelectItem value="rated">{b.sortRated}</SelectItem>
                     <SelectItem value="credits">{b.sortCredits}</SelectItem>
@@ -396,9 +396,9 @@ export function BrowsePage({ onNavigate }: BrowsePageProps) {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-12">
-                <p className="text-xl text-gray-600 mb-2">{b.noSkillsTitle}</p>
-                <p className="text-gray-500">{b.noSkillsHint}</p>
+              <div className="py-12 text-center">
+                <p className="mb-2 text-xl text-muted-foreground">{b.noSkillsTitle}</p>
+                <p className="text-muted-foreground">{b.noSkillsHint}</p>
               </div>
             )}
             

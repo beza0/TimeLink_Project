@@ -7,7 +7,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { messages, type Locale, type Messages } from "../i18n/messages";
+import { messages, type Locale, type Messages } from "../language";
 
 const STORAGE_KEY = "timelink-locale";
 

@@ -11,15 +11,15 @@ interface StatCardProps {
 
 export function StatCard({ title, value, icon: Icon, gradient, description }: StatCardProps) {
   return (
-    <Card className="p-6 rounded-2xl border-0 shadow-lg hover:shadow-xl transition-shadow">
+    <Card className="rounded-2xl border-0 p-6 shadow-lg transition-shadow hover:shadow-xl">
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-sm text-gray-600 mb-1">{title}</p>
+          <p className="mb-1 text-sm text-muted-foreground">{title}</p>
           <p className={`text-3xl bg-gradient-to-r ${gradient} bg-clip-text text-transparent mb-1`}>
             {value}
           </p>
           {description && (
-            <p className="text-xs text-gray-500">{description}</p>
+            <p className="text-xs text-muted-foreground">{description}</p>
           )}
         </div>
         <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center`}>

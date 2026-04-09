@@ -13,7 +13,7 @@ import {
 import { Calendar, Clock, Video, MapPin } from "lucide-react";
 import { useState } from "react";
 import { useLanguage } from "../../contexts/LanguageContext";
-import { formatTemplate } from "../../i18n/messages";
+import { formatTemplate } from "../../language";
 
 interface UpcomingSessionProps {
   id: string;
@@ -67,7 +67,7 @@ export function UpcomingSession({
   });
 
   return (
-    <Card className="p-5 rounded-xl border border-gray-100 hover:shadow-md transition-shadow">
+    <Card className="rounded-xl border border-border p-5 transition-shadow hover:shadow-md">
       <div className="flex items-start gap-4">
         <ImageWithFallback
           src={instructor.image}
@@ -78,8 +78,8 @@ export function UpcomingSession({
         <div className="flex-1">
           <div className="flex items-start justify-between mb-2">
             <div>
-              <h4 className="text-gray-900 mb-1">{title}</h4>
-              <p className="text-sm text-gray-600">
+              <h4 className="mb-1 text-foreground">{title}</h4>
+              <p className="text-sm text-muted-foreground">
                 {u.with} {instructor.name}
               </p>
             </div>
@@ -89,17 +89,17 @@ export function UpcomingSession({
           </div>
 
           <div className="grid grid-cols-2 gap-2 mt-3">
-            <div className="flex items-center gap-2 text-xs text-gray-600">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <Calendar className="w-3 h-3" />
               <span>{date}</span>
             </div>
-            <div className="flex items-center gap-2 text-xs text-gray-600">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <Clock className="w-3 h-3" />
               <span>
                 {time} ({duration})
               </span>
             </div>
-            <div className="flex items-center gap-2 text-xs text-gray-600 col-span-2">
+            <div className="col-span-2 flex items-center gap-2 text-xs text-muted-foreground">
               {type === "online" ? (
                 <Video className="w-3 h-3" />
               ) : (

@@ -8,7 +8,7 @@ import { Search, Send, Check, X } from "lucide-react";
 import { useState } from "react";
 import type { PageType } from "../App";
 import { useLanguage } from "../contexts/LanguageContext";
-import { formatTemplate } from "../i18n/messages";
+import { formatTemplate } from "../language";
 
 interface MessagesPageProps {
   onNavigate?: (page: PageType) => void;
@@ -105,16 +105,16 @@ export function MessagesPage({ onNavigate }: MessagesPageProps) {
   };
 
   return (
-    <PageLayout onNavigate={onNavigate} className="min-h-screen bg-gray-50">
+    <PageLayout onNavigate={onNavigate}>
       
       <div className="pt-20 pb-4 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto h-[calc(100vh-7rem)]">
-          <Card className="h-full rounded-2xl border-0 shadow-lg overflow-hidden flex flex-row">
-            <div className="w-96 border-r border-gray-200 flex flex-col flex-shrink-0">
-              <div className="p-4 border-b border-gray-200">
-                <h2 className="text-xl text-gray-900 mb-4">{m.title}</h2>
+          <Card className="flex h-full flex-row overflow-hidden rounded-2xl border-0 shadow-lg">
+            <div className="flex w-96 shrink-0 flex-col border-r border-border">
+              <div className="border-b border-border p-4">
+                <h2 className="mb-4 text-xl text-foreground">{m.title}</h2>
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input 
                     placeholder={m.searchPlaceholder}
                     className="pl-10"
@@ -129,8 +129,10 @@ export function MessagesPage({ onNavigate }: MessagesPageProps) {
                   <button
                     key={conv.id}
                     onClick={() => setSelectedConversation(conv)}
-                    className={`w-full p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors text-left ${
-                      selectedConversation.id === conv.id ? 'bg-blue-50' : ''
+                    className={`w-full border-b border-border p-4 text-left transition-colors hover:bg-accent/50 ${
+                      selectedConversation.id === conv.id
+                        ? "bg-primary/10"
+                        : ""
                     }`}
                   >
                     <div className="flex items-start gap-3">
@@ -142,12 +144,12 @@ export function MessagesPage({ onNavigate }: MessagesPageProps) {
                       
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between mb-1">
-                          <h3 className="text-sm text-gray-900 truncate">{conv.user.name}</h3>
-                          <span className="text-xs text-gray-500 flex-shrink-0">{conv.time}</span>
+                          <h3 className="truncate text-sm text-foreground">{conv.user.name}</h3>
+                          <span className="shrink-0 text-xs text-muted-foreground">{conv.time}</span>
                         </div>
                         
                         <div className="flex items-center justify-between">
-                          <p className="text-sm text-gray-600 truncate">{conv.lastMessage}</p>
+                          <p className="truncate text-sm text-muted-foreground">{conv.lastMessage}</p>
                           {conv.unread > 0 && (
                             <Badge className="ml-2 flex-shrink-0">{conv.unread}</Badge>
                           )}
@@ -167,7 +169,7 @@ export function MessagesPage({ onNavigate }: MessagesPageProps) {
             </div>
 
             <div className="flex-1 flex flex-col min-w-0">
-              <div className="p-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0">
+              <div className="flex shrink-0 items-center justify-between border-b border-border p-4">
                 <div className="flex items-center gap-3">
                   <ImageWithFallback 
                     src={selectedConversation.user.image}
@@ -175,15 +177,15 @@ export function MessagesPage({ onNavigate }: MessagesPageProps) {
                     className="w-10 h-10 rounded-full object-cover"
                   />
                   <div>
-                    <h3 className="text-gray-900">{selectedConversation.user.name}</h3>
-                    <p className="text-xs text-gray-500">{m.activeNow}</p>
+                    <h3 className="text-foreground">{selectedConversation.user.name}</h3>
+                    <p className="text-xs text-muted-foreground">{m.activeNow}</p>
                   </div>
                 </div>
               </div>
 
               {selectedConversation.status === "pending-incoming" && (
-                <div className="p-4 bg-blue-50 border-b border-blue-100">
-                  <p className="text-sm text-gray-700 mb-3">
+                <div className="border-b border-blue-100 bg-blue-50 p-4 dark:border-blue-900/50 dark:bg-blue-950/40">
+                  <p className="mb-3 text-sm text-foreground/90">
                     {formatTemplate(m.wantsConnect, { name: selectedConversation.user.name })}
                   </p>
                   <div className="flex gap-2">
@@ -208,8 +210,8 @@ export function MessagesPage({ onNavigate }: MessagesPageProps) {
               )}
 
               {selectedConversation.status === "pending-outgoing" && (
-                <div className="p-4 bg-yellow-50 border-b border-yellow-100">
-                  <p className="text-sm text-gray-700">
+                <div className="border-b border-yellow-100 bg-yellow-50 p-4 dark:border-yellow-900/40 dark:bg-yellow-950/30">
+                  <p className="text-sm text-foreground/90">
                     {formatTemplate(m.waitingOutgoing, { name: selectedConversation.user.name })}
                   </p>
                 </div>
@@ -227,22 +229,22 @@ export function MessagesPage({ onNavigate }: MessagesPageProps) {
                           className={`p-3 rounded-2xl ${
                             msg.sender === "me"
                               ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white"
-                              : "bg-gray-100 text-gray-900"
+                              : "bg-muted text-foreground"
                           }`}
                         >
                           <p className="text-sm">{msg.text}</p>
                         </div>
-                        <p className="text-xs text-gray-500 mt-1 px-3">{msg.time}</p>
+                        <p className="mt-1 px-3 text-xs text-muted-foreground">{msg.time}</p>
                       </div>
                     </div>
                   ))
                 ) : selectedConversation.status === "pending-incoming" ? (
-                  <div className="text-center text-gray-500 py-12">
+                  <div className="py-12 text-center text-muted-foreground">
                     <p className="mb-2">{m.messageRequest}</p>
                     <p className="text-sm">{m.acceptHint}</p>
                   </div>
                 ) : (
-                  <div className="text-center text-gray-500 py-12">
+                  <div className="py-12 text-center text-muted-foreground">
                     <p className="mb-2">{m.requestSent}</p>
                     <p className="text-sm">
                       {formatTemplate(m.waitingAccept, { name: selectedConversation.user.name })}
@@ -252,7 +254,7 @@ export function MessagesPage({ onNavigate }: MessagesPageProps) {
               </div>
 
               {selectedConversation.status === "accepted" && (
-                <div className="p-4 border-t border-gray-200">
+                <div className="border-t border-border p-4">
                   <div className="flex gap-2">
                     <Input 
                       placeholder={m.typeMessage}

@@ -18,16 +18,16 @@ export function EditProfilePage({ onNavigate }: EditProfilePageProps) {
   const e = t.editProfile;
 
   return (
-    <PageLayout onNavigate={onNavigate} className="min-h-screen bg-gray-50">
+    <PageLayout onNavigate={onNavigate}>
       
       <div className="pt-24 pb-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-3xl text-gray-900 mb-2">{e.title}</h1>
-            <p className="text-gray-600">{e.subtitle}</p>
+            <h1 className="mb-2 text-3xl text-foreground">{e.title}</h1>
+            <p className="text-muted-foreground">{e.subtitle}</p>
           </div>
 
-          <Card className="p-8 rounded-2xl border-0 shadow-lg">
+          <Card className="rounded-2xl border-0 p-8 shadow-lg">
             <form className="space-y-6">
               <div className="flex flex-col items-center mb-6">
                 <div className="relative">
@@ -43,7 +43,7 @@ export function EditProfilePage({ onNavigate }: EditProfilePageProps) {
                     <Camera className="w-5 h-5" />
                   </button>
                 </div>
-                <p className="text-sm text-gray-500 mt-3">{e.photoHint}</p>
+                <p className="mt-3 text-sm text-muted-foreground">{e.photoHint}</p>
               </div>
 
               <div>

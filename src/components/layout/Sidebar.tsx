@@ -30,8 +30,8 @@ export function Sidebar({
         aria-hidden
       />
 
-      <div className="nav-xl-sidebar-host fixed top-0 left-0 bottom-0 z-50 flex w-full max-w-md flex-col bg-white shadow-2xl dark:bg-gray-950 dark:shadow-black/40">
-        <div className="flex shrink-0 items-center justify-between border-b border-gray-200 p-4 dark:border-gray-800">
+      <div className="nav-xl-sidebar-host fixed top-0 left-0 bottom-0 z-50 flex w-full max-w-md flex-col bg-background shadow-2xl">
+        <div className="flex shrink-0 items-center justify-between border-b border-border p-4">
           <button
             onClick={() => {
               onClose();
@@ -42,15 +42,15 @@ export function Sidebar({
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
               <Clock className="w-6 h-6 text-white" />
             </div>
-            <span className="text-xl text-gray-900 dark:text-gray-100">TimeLink</span>
+            <span className="text-xl text-foreground">TimeLink</span>
           </button>
 
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+            className="rounded-lg p-2 transition-colors hover:bg-accent"
             aria-label="Close menu"
           >
-            <X className="w-6 h-6" />
+            <X className="h-6 w-6 text-foreground" />
           </button>
         </div>
 
@@ -61,13 +61,13 @@ export function Sidebar({
           <div className="flex flex-col gap-3">
             <button
               onClick={() => onNavigate("browse")}
-              className="sidebar-nav-item rounded-xl px-4 py-4 text-left text-base text-gray-700 transition-colors dark:text-gray-200"
+              className="sidebar-nav-item rounded-xl px-4 py-4 text-left text-base text-foreground transition-colors"
             >
               {t.sidebar.browseSkills}
             </button>
             <button
               onClick={() => onNavigate("how-it-works")}
-              className="sidebar-nav-item rounded-xl px-4 py-4 text-left text-base text-gray-700 transition-colors dark:text-gray-200"
+              className="sidebar-nav-item rounded-xl px-4 py-4 text-left text-base text-foreground transition-colors"
             >
               {t.sidebar.howItWorks}
             </button>
@@ -75,26 +75,26 @@ export function Sidebar({
               <>
                 <button
                   onClick={() => onNavigate("dashboard")}
-                  className="sidebar-nav-item rounded-xl px-4 py-4 text-left text-base text-gray-700 transition-colors dark:text-gray-200"
+                  className="sidebar-nav-item rounded-xl px-4 py-4 text-left text-base text-foreground transition-colors"
                 >
                   {t.sidebar.dashboard}
                 </button>
                 <button
                   onClick={() => onNavigate("messages")}
-                  className="sidebar-nav-item rounded-xl px-4 py-4 text-left text-base text-gray-700 transition-colors dark:text-gray-200"
+                  className="sidebar-nav-item rounded-xl px-4 py-4 text-left text-base text-foreground transition-colors"
                 >
                   {t.sidebar.messages}
                 </button>
                 <button
                   onClick={() => onNavigate("profile")}
-                  className="sidebar-nav-item rounded-xl px-4 py-4 text-left text-base text-gray-700 transition-colors dark:text-gray-200"
+                  className="sidebar-nav-item rounded-xl px-4 py-4 text-left text-base text-foreground transition-colors"
                 >
                   {t.sidebar.profile}
                 </button>
-                <div className="my-3 border-t border-gray-200 dark:border-gray-800" />
+                <div className="my-3 border-t border-border" />
                 <button
                   onClick={() => onNavigate("settings")}
-                  className="sidebar-nav-item flex items-center gap-2 rounded-xl px-4 py-4 text-left text-base text-gray-700 transition-colors dark:text-gray-200"
+                  className="sidebar-nav-item flex items-center gap-2 rounded-xl px-4 py-4 text-left text-base text-foreground transition-colors"
                 >
                   <Settings className="h-4 w-4 shrink-0" />
                   {t.sidebar.settings}
@@ -103,7 +103,7 @@ export function Sidebar({
             )}
           </div>
 
-          <div className="mt-auto border-t border-gray-200 pt-4 dark:border-gray-800">
+          <div className="mt-auto border-t border-border pt-4">
             {isAuthenticated ? (
               <Button
                 variant="ghost"

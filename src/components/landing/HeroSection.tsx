@@ -60,7 +60,7 @@ export function HeroSection({ onNavigate }: HeroSectionProps) {
           </Button>
           <Button 
             size="lg" 
-            className="bg-white text-purple-600 border-2 border-purple-600 hover:bg-purple-50 px-8 py-6 rounded-full"
+            className="rounded-full border-2 border-primary/80 bg-card px-8 py-6 text-primary hover:bg-accent"
             onClick={() => onNavigate?.("how-it-works")}
           >
             {h.howItWorks}

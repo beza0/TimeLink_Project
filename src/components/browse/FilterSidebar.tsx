@@ -4,7 +4,7 @@ import { Checkbox } from "../ui/checkbox";
 import { Slider } from "../ui/slider";
 import { Label } from "../ui/label";
 import { useLanguage } from "../../contexts/LanguageContext";
-import { formatTemplate } from "../../i18n/messages";
+import { formatTemplate } from "../../language";
 
 const FILTER_CATEGORIES = [
   "Sports",
@@ -66,16 +66,16 @@ export function FilterSidebar({ filters, onFiltersChange }: FilterSidebarProps) 
   };
 
   return (
-    <Card className="w-full p-6 rounded-2xl border-0 shadow-lg">
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg text-gray-900">{fi.title}</h3>
+    <Card className="w-full rounded-2xl border border-border/80 p-6 shadow-lg">
+      <div className="mb-6 flex items-center justify-between">
+        <h3 className="text-lg text-foreground">{fi.title}</h3>
         <Button variant="ghost" size="sm" onClick={clearFilters}>
           {fi.clearAll}
         </Button>
       </div>
       
       <div className="mb-6">
-        <Label className="text-sm text-gray-900 mb-3 block">{fi.categories}</Label>
+        <Label className="mb-3 block text-sm text-foreground">{fi.categories}</Label>
         <div className="space-y-3 max-h-48 overflow-y-auto">
           {FILTER_CATEGORIES.map((category) => (
             <div key={category} className="flex items-center gap-2">
@@ -86,7 +86,7 @@ export function FilterSidebar({ filters, onFiltersChange }: FilterSidebarProps) 
               />
               <label 
                 htmlFor={category} 
-                className="text-sm text-gray-600 cursor-pointer"
+                className="cursor-pointer text-sm text-muted-foreground"
               >
                 {catLabels[category] ?? category}
               </label>
@@ -96,7 +96,7 @@ export function FilterSidebar({ filters, onFiltersChange }: FilterSidebarProps) 
       </div>
       
       <div className="mb-6">
-        <Label className="text-sm text-gray-900 mb-3 block">{fi.location}</Label>
+        <Label className="mb-3 block text-sm text-foreground">{fi.location}</Label>
         <div className="space-y-3">
           {LOCATION_KEYS.map((location) => (
             <div key={location} className="flex items-center gap-2">
@@ -107,7 +107,7 @@ export function FilterSidebar({ filters, onFiltersChange }: FilterSidebarProps) 
               />
               <label 
                 htmlFor={location} 
-                className="text-sm text-gray-600 cursor-pointer"
+                className="cursor-pointer text-sm text-muted-foreground"
               >
                 {locLabels[location] ?? location}
               </label>
@@ -117,7 +117,7 @@ export function FilterSidebar({ filters, onFiltersChange }: FilterSidebarProps) 
       </div>
       
       <div className="mb-6">
-        <Label className="text-sm text-gray-900 mb-3 block">
+        <Label className="mb-3 block text-sm text-foreground">
           {formatTemplate(fi.timeCreditsRange, {
             min: filters.timeCreditsRange[0],
             max: filters.timeCreditsRange[1],
@@ -135,14 +135,14 @@ export function FilterSidebar({ filters, onFiltersChange }: FilterSidebarProps) 
           step={1} 
           className="mb-2" 
         />
-        <div className="flex justify-between text-xs text-gray-500">
+        <div className="flex justify-between text-xs text-muted-foreground">
           <span>{fi.h1}</span>
           <span>{fi.h20}</span>
         </div>
       </div>
       
       <div className="mb-6">
-        <Label className="text-sm text-gray-900 mb-3 block">{fi.minRating}</Label>
+        <Label className="mb-3 block text-sm text-foreground">{fi.minRating}</Label>
         <div className="space-y-3">
           {[4, 3, 2, 1].map((rating) => (
             <div key={rating} className="flex items-center gap-2">
@@ -155,7 +155,7 @@ export function FilterSidebar({ filters, onFiltersChange }: FilterSidebarProps) 
               />
               <label 
                 htmlFor={`rating-${rating}`} 
-                className="text-sm text-gray-600 cursor-pointer"
+                className="cursor-pointer text-sm text-muted-foreground"
               >
                 {rating}
                 {fi.starsSuffix}

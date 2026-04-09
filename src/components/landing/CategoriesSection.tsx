@@ -10,12 +10,13 @@ const colors = [
   "from-purple-400 to-violet-600",
   "from-orange-400 to-amber-600",
 ] as const;
+/* Açık pastel yüzey: koyu temada da aynı (metin her zaman koyu mürekkep) */
 const bgColors = [
-  "bg-green-50",
-  "bg-pink-50",
-  "bg-blue-50",
-  "bg-purple-50",
-  "bg-orange-50",
+  "bg-emerald-50",
+  "bg-rose-50",
+  "bg-sky-50",
+  "bg-violet-50",
+  "bg-amber-50",
 ] as const;
 
 export function CategoriesSection() {
@@ -23,34 +24,34 @@ export function CategoriesSection() {
   const c = t.landing.categories;
 
   return (
-    <section id="categories" className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
-      <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl md:text-5xl text-gray-900 mb-4">
+    <section id="categories" className="bg-background px-4 py-20 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl">
+        <div className="mb-16 text-center">
+          <h2 className="mb-4 text-3xl text-foreground sm:text-4xl md:text-5xl">
             {c.title}
           </h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
             {c.subtitle}
           </p>
         </div>
         
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+        <div className="grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-5">
           {c.items.map((category, index) => {
             const Icon = icons[index];
             return (
-              <Card 
+              <Card
                 key={index}
-                className={`p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer border-0 rounded-2xl ${bgColors[index]} group`}
+                className={`group cursor-pointer rounded-2xl border border-slate-200/90 p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg dark:border-white/10 dark:ring-1 dark:ring-white/5 ${bgColors[index]}`}
               >
-                <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${colors[index]} flex items-center justify-center mb-4 shadow-md group-hover:scale-110 transition-transform duration-300`}>
-                  <Icon className="w-7 h-7 text-white" />
+                <div className={`mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br ${colors[index]} shadow-md transition-transform duration-300 group-hover:scale-110`}>
+                  <Icon className="h-7 w-7 text-white" />
                 </div>
-                
-                <h3 className="text-lg text-gray-900 mb-1">
+
+                <h3 className="mb-1 text-lg font-medium text-slate-900">
                   {category.name}
                 </h3>
-                
-                <p className="text-sm text-gray-600">
+
+                <p className="text-sm text-slate-600">
                   {category.count}
                 </p>
               </Card>

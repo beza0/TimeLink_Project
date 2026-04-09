@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useAuth } from "../contexts/AuthContext";
-import { formatTemplate } from "../i18n/messages";
+import { formatTemplate } from "../language";
 
 interface ProfilePageProps {
   onNavigate?: (page: PageType) => void;
@@ -63,7 +63,7 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
   const displayName = user?.name ?? "Alex Thompson";
 
   return (
-    <PageLayout onNavigate={onNavigate} className="min-h-screen bg-gray-50">
+    <PageLayout onNavigate={onNavigate}>
       
       <div className="bg-gradient-to-r from-blue-500 to-purple-600 pt-24 pb-32 px-4 sm:px-6 lg:px-8">
         <div className="max-w-5xl mx-auto">
@@ -91,7 +91,7 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
                   </Button>
                   <Button 
                     size="sm" 
-                    className="bg-white text-purple-600 hover:bg-gray-100"
+                    className="bg-card text-primary hover:bg-accent"
                     onClick={() => onNavigate?.("edit-profile")}
                   >
                     <Edit className="w-4 h-4 mr-2" />
@@ -126,7 +126,7 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
       
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 -mt-16 pb-12">
         <Tabs defaultValue="teaching" className="space-y-6">
-          <TabsList className="bg-white shadow-lg rounded-xl p-1">
+          <TabsList className="rounded-xl border border-border bg-muted p-1 shadow-lg">
             <TabsTrigger value="teaching" className="rounded-lg">{p.tabTeaching}</TabsTrigger>
             <TabsTrigger value="learning" className="rounded-lg">{p.tabLearning}</TabsTrigger>
             <TabsTrigger value="reviews" className="rounded-lg">{p.tabReviews}</TabsTrigger>
@@ -134,9 +134,9 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
           </TabsList>
           
           <TabsContent value="teaching" className="space-y-4">
-            <Card className="p-6 rounded-2xl border-0 shadow-lg">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl text-gray-900">{p.skillsTeach}</h2>
+            <Card className="rounded-2xl border-0 p-6 shadow-lg">
+              <div className="mb-6 flex items-center justify-between">
+                <h2 className="text-xl text-foreground">{p.skillsTeach}</h2>
                 <Button 
                   className="bg-gradient-to-r from-blue-500 to-purple-600 text-white"
                   onClick={() => onNavigate?.("add-skill")}
@@ -147,10 +147,10 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {skills.map((skill, index) => (
-                  <Card key={index} className="p-5 rounded-xl border border-gray-100">
-                    <div className="flex items-start justify-between mb-3">
+                  <Card key={index} className="rounded-xl border border-border bg-muted/25 p-5">
+                    <div className="mb-3 flex items-start justify-between">
                       <div>
-                        <h3 className="text-lg text-gray-900">{skill.name}</h3>
+                        <h3 className="text-lg text-foreground">{skill.name}</h3>
                         <Badge variant="secondary" className="mt-1">
                           {p.skillLevels[skill.level as keyof typeof p.skillLevels] ?? skill.level}
                         </Badge>
@@ -161,7 +161,7 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
                       </div>
                     </div>
                     
-                    <div className="flex items-center gap-4 text-sm text-gray-600">
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
                       <div className="flex items-center gap-1">
                         <BookOpen className="w-4 h-4" />
                         <span>{formatTemplate(p.studentsLabel, { n: skill.students })}</span>
@@ -193,16 +193,16 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
           </TabsContent>
           
           <TabsContent value="learning" className="space-y-4">
-            <Card className="p-6 rounded-2xl border-0 shadow-lg">
-              <h2 className="text-xl text-gray-900 mb-6">{p.skillsLearning}</h2>
+            <Card className="rounded-2xl border-0 p-6 shadow-lg">
+              <h2 className="mb-6 text-xl text-foreground">{p.skillsLearning}</h2>
               
               <div className="space-y-4">
                 {learningSkills.map((skill, index) => (
-                  <Card key={index} className="p-5 rounded-xl border border-gray-100">
-                    <div className="flex items-center justify-between mb-3">
+                  <Card key={index} className="rounded-xl border border-border bg-muted/25 p-5">
+                    <div className="mb-3 flex items-center justify-between">
                       <div>
-                        <h3 className="text-lg text-gray-900">{skill.name}</h3>
-                        <p className="text-sm text-gray-600">{t.common.with} {skill.instructor}</p>
+                        <h3 className="text-lg text-foreground">{skill.name}</h3>
+                        <p className="text-sm text-muted-foreground">{t.common.with} {skill.instructor}</p>
                       </div>
                       <Badge>
                         {skill.sessions} {t.common.sessions}
@@ -211,10 +211,10 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
                     
                     <div className="mb-2">
                       <div className="flex items-center justify-between text-sm mb-1">
-                        <span className="text-gray-600">{p.progress}</span>
-                        <span className="text-gray-900">{skill.progress}%</span>
+                        <span className="text-muted-foreground">{p.progress}</span>
+                        <span className="text-foreground">{skill.progress}%</span>
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div className="h-2 w-full rounded-full bg-gray-200 dark:bg-gray-700">
                         <div 
                           className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all"
                           style={{ width: `${skill.progress}%` }}
@@ -237,12 +237,12 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
           </TabsContent>
           
           <TabsContent value="reviews" className="space-y-4">
-            <Card className="p-6 rounded-2xl border-0 shadow-lg">
-              <h2 className="text-xl text-gray-900 mb-6">{p.studentReviews}</h2>
+            <Card className="rounded-2xl border-0 p-6 shadow-lg">
+              <h2 className="mb-6 text-xl text-foreground">{p.studentReviews}</h2>
               
               <div className="space-y-4">
                 {reviews.map((review, index) => (
-                  <Card key={index} className="p-5 rounded-xl border border-gray-100">
+                  <Card key={index} className="rounded-xl border border-border bg-muted/25 p-5">
                     <div className="flex items-start gap-4">
                       <ImageWithFallback 
                         src={review.avatar}
@@ -253,8 +253,8 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
                       <div className="flex-1">
                         <div className="flex items-center justify-between mb-2">
                           <div>
-                            <h4 className="text-gray-900">{review.student}</h4>
-                            <p className="text-sm text-gray-600">{review.skill}</p>
+                            <h4 className="text-foreground">{review.student}</h4>
+                            <p className="text-sm text-muted-foreground">{review.skill}</p>
                           </div>
                           <div className="flex items-center gap-1">
                             {[...Array(review.rating)].map((_, i) => (
@@ -263,8 +263,8 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
                           </div>
                         </div>
                         
-                        <p className="text-gray-700 mb-2">{review.comment}</p>
-                        <p className="text-xs text-gray-500">{review.date}</p>
+                        <p className="mb-2 text-foreground/90">{review.comment}</p>
+                        <p className="text-xs text-muted-foreground">{review.date}</p>
                       </div>
                     </div>
                   </Card>
@@ -274,17 +274,17 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
           </TabsContent>
           
           <TabsContent value="achievements" className="space-y-4">
-            <Card className="p-6 rounded-2xl border-0 shadow-lg">
-              <h2 className="text-xl text-gray-900 mb-6">{p.myAchievements}</h2>
+            <Card className="rounded-2xl border-0 p-6 shadow-lg">
+              <h2 className="mb-6 text-xl text-foreground">{p.myAchievements}</h2>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {p.achievements.map((achievement, index) => (
-                  <Card key={index} className="p-5 rounded-xl border border-gray-100 hover:shadow-md transition-shadow">
+                  <Card key={index} className="rounded-xl border border-border bg-muted/25 p-5 transition-shadow hover:shadow-md">
                     <div className="flex items-start gap-4">
                       <div className="text-4xl">{achievementIcons[index]}</div>
                       <div>
-                        <h4 className="text-gray-900 mb-1">{achievement.name}</h4>
-                        <p className="text-sm text-gray-600">{achievement.description}</p>
+                        <h4 className="mb-1 text-foreground">{achievement.name}</h4>
+                        <p className="text-sm text-muted-foreground">{achievement.description}</p>
                       </div>
                     </div>
                   </Card>

@@ -13,7 +13,7 @@ import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { useLanguage } from "../contexts/LanguageContext";
 import type { PageType } from "../App";
-import type { Locale } from "../i18n/messages";
+import type { Locale } from "../language";
 import { Moon, Sun } from "lucide-react";
 
 interface SettingsPageProps {
@@ -57,22 +57,19 @@ export function SettingsPage({ onNavigate }: SettingsPageProps) {
   };
 
   return (
-    <PageLayout
-      onNavigate={onNavigate}
-      className="min-h-screen bg-gray-50 dark:bg-gray-950"
-    >
+    <PageLayout onNavigate={onNavigate}>
       <div className="pt-24 pb-12 px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl space-y-6">
           <div>
-            <h1 className="text-3xl font-semibold text-gray-900 dark:text-gray-100">
+            <h1 className="text-3xl font-semibold text-foreground">
               {s.title}
             </h1>
-            <p className="mt-1 text-gray-600 dark:text-gray-400">{s.subtitle}</p>
+            <p className="mt-1 text-muted-foreground">{s.subtitle}</p>
           </div>
 
-          <Card className="rounded-2xl border-gray-200 shadow-lg dark:border-gray-800 dark:bg-gray-900">
+          <Card className="rounded-2xl border-border shadow-lg">
             <CardHeader>
-              <CardTitle className="text-lg text-gray-900 dark:text-gray-100">
+              <CardTitle className="text-lg text-foreground">
                 {s.passwordTitle}
               </CardTitle>
               <CardDescription>{s.passwordDesc}</CardDescription>
@@ -87,7 +84,7 @@ export function SettingsPage({ onNavigate }: SettingsPageProps) {
                     autoComplete="current-password"
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
-                    className="bg-white dark:bg-gray-950"
+                    className="bg-input-background"
                   />
                 </div>
                 <div className="space-y-2">
@@ -98,7 +95,7 @@ export function SettingsPage({ onNavigate }: SettingsPageProps) {
                     autoComplete="new-password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    className="bg-white dark:bg-gray-950"
+                    className="bg-input-background"
                   />
                 </div>
                 <div className="space-y-2">
@@ -109,7 +106,7 @@ export function SettingsPage({ onNavigate }: SettingsPageProps) {
                     autoComplete="new-password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="bg-white dark:bg-gray-950"
+                    className="bg-input-background"
                   />
                 </div>
                 {passwordError ? (
@@ -132,9 +129,9 @@ export function SettingsPage({ onNavigate }: SettingsPageProps) {
             </CardContent>
           </Card>
 
-          <Card className="rounded-2xl border-gray-200 shadow-lg dark:border-gray-800 dark:bg-gray-900">
+          <Card className="rounded-2xl border-border shadow-lg">
             <CardHeader>
-              <CardTitle className="text-lg text-gray-900 dark:text-gray-100">
+              <CardTitle className="text-lg text-foreground">
                 {s.languageTitle}
               </CardTitle>
               <CardDescription>{s.languageDesc}</CardDescription>
@@ -153,8 +150,8 @@ export function SettingsPage({ onNavigate }: SettingsPageProps) {
                     onClick={() => setLocale(code as Locale)}
                     className={`rounded-lg border px-4 py-2 text-sm font-medium transition-colors ${
                       locale === code
-                        ? "border-purple-500 bg-purple-50 text-purple-800 dark:border-purple-400 dark:bg-purple-950/50 dark:text-purple-200"
-                        : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-300 dark:hover:bg-gray-800"
+                        ? "border-primary bg-primary/15 text-primary"
+                        : "border-border bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                     }`}
                   >
                     {label}
@@ -164,9 +161,9 @@ export function SettingsPage({ onNavigate }: SettingsPageProps) {
             </CardContent>
           </Card>
 
-          <Card className="rounded-2xl border-gray-200 shadow-lg dark:border-gray-800 dark:bg-gray-900">
+          <Card className="rounded-2xl border-border shadow-lg">
             <CardHeader>
-              <CardTitle className="text-lg text-gray-900 dark:text-gray-100">
+              <CardTitle className="text-lg text-foreground">
                 {s.themeTitle}
               </CardTitle>
               <CardDescription>{s.themeDesc}</CardDescription>
@@ -178,8 +175,8 @@ export function SettingsPage({ onNavigate }: SettingsPageProps) {
                   onClick={() => setTheme("light")}
                   className={`inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition-colors ${
                     activeTheme === "light"
-                      ? "border-purple-500 bg-purple-50 text-purple-800 dark:border-purple-400 dark:bg-purple-950/50 dark:text-purple-200"
-                      : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-300 dark:hover:bg-gray-800"
+                      ? "border-primary bg-primary/15 text-primary"
+                      : "border-border bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                   }`}
                 >
                   <Sun className="h-4 w-4" aria-hidden />
@@ -190,8 +187,8 @@ export function SettingsPage({ onNavigate }: SettingsPageProps) {
                   onClick={() => setTheme("dark")}
                   className={`inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition-colors ${
                     activeTheme === "dark"
-                      ? "border-purple-500 bg-purple-50 text-purple-800 dark:border-purple-400 dark:bg-purple-950/50 dark:text-purple-200"
-                      : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-300 dark:hover:bg-gray-800"
+                      ? "border-primary bg-primary/15 text-primary"
+                      : "border-border bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                   }`}
                 >
                   <Moon className="h-4 w-4" aria-hidden />

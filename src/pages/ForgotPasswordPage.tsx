@@ -29,8 +29,8 @@ export function ForgotPasswordPage({ onNavigate }: ForgotPasswordPageProps) {
             onClick={() => onNavigate?.("landing")}
             className="inline-flex items-center gap-2 mb-4"
           >
-            <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center">
-              <Clock className="w-7 h-7 text-purple-600" />
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-card text-primary shadow-sm">
+              <Clock className="h-7 w-7 text-primary" />
             </div>
             <span className="text-2xl text-white">TimeLink</span>
           </button>
@@ -42,7 +42,7 @@ export function ForgotPasswordPage({ onNavigate }: ForgotPasswordPageProps) {
           </p>
         </div>
 
-        <div className="bg-white rounded-3xl shadow-2xl p-8">
+        <div className="rounded-3xl bg-card p-8 text-card-foreground shadow-2xl">
           {!emailSent ? (
             <>
               <form className="space-y-5" onSubmit={handleSubmit}>
@@ -70,15 +70,15 @@ export function ForgotPasswordPage({ onNavigate }: ForgotPasswordPageProps) {
               <div className="mt-6 text-center">
                 <button 
                   onClick={() => onNavigate?.("login")}
-                  className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+                  className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
                 >
                   <ArrowLeft className="w-4 h-4" />
                   {a.backSignIn}
                 </button>
               </div>
 
-              <div className="mt-6 p-4 bg-blue-50 rounded-xl border border-blue-100">
-                <p className="text-sm text-gray-700">
+              <div className="mt-6 rounded-xl border border-blue-100 bg-blue-50 p-4 dark:border-blue-900/50 dark:bg-blue-950/40">
+                <p className="text-sm text-foreground/90">
                   <strong>{t.common.note}:</strong> {a.noteBox}
                 </p>
               </div>
@@ -86,12 +86,12 @@ export function ForgotPasswordPage({ onNavigate }: ForgotPasswordPageProps) {
           ) : (
             <>
               <div className="text-center py-4">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-950/50">
                   <CheckCircle className="w-8 h-8 text-green-600" />
                 </div>
                 
-                <h3 className="text-xl text-gray-900 mb-2">{a.emailSent}</h3>
-                <p className="text-gray-600 mb-6">
+                <h3 className="mb-2 text-xl text-foreground">{a.emailSent}</h3>
+                <p className="mb-6 text-muted-foreground">
                   {a.sentToPrefix}<br />
                   <strong>{email}</strong>
                 </p>
@@ -118,7 +118,7 @@ export function ForgotPasswordPage({ onNavigate }: ForgotPasswordPageProps) {
               <div className="mt-6 text-center">
                 <button 
                   onClick={() => onNavigate?.("login")}
-                  className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+                  className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
                 >
                   <ArrowLeft className="w-4 h-4" />
                   {a.backSignIn}

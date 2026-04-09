@@ -40,52 +40,52 @@ export function SkillCard({
   const locationLabel = b.locationLineLabels[location] ?? location;
 
   return (
-    <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-0 rounded-2xl">
+    <Card className="overflow-hidden rounded-2xl border border-border/80 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
       <div className="relative h-48 overflow-hidden">
         <ImageWithFallback 
           src={image} 
           alt={title}
-          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
         />
-        <Badge className="absolute top-3 right-3 bg-white/90 text-gray-900 hover:bg-white">
+        <Badge className="absolute right-3 top-3 border-0 bg-background/95 text-foreground shadow-sm backdrop-blur-sm hover:bg-accent">
           {categoryLabel}
         </Badge>
       </div>
       
       <div className="p-5">
-        <h3 className="text-xl text-gray-900 mb-3">
+        <h3 className="mb-3 text-xl text-foreground">
           {title}
         </h3>
         
-        <div className="flex items-center gap-3 mb-4">
+        <div className="mb-4 flex items-center gap-3">
           <ImageWithFallback 
             src={instructor.image}
             alt={instructor.name}
-            className="w-10 h-10 rounded-full object-cover"
+            className="h-10 w-10 rounded-full object-cover"
           />
           <div className="flex-1">
-            <p className="text-sm text-gray-900">{instructor.name}</p>
+            <p className="text-sm text-foreground">{instructor.name}</p>
             <div className="flex items-center gap-1">
-              <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-              <span className="text-xs text-gray-600">
+              <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+              <span className="text-xs text-muted-foreground">
                 {instructor.rating} ({instructor.reviews})
               </span>
             </div>
           </div>
         </div>
         
-        <div className="space-y-2 mb-4">
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <Clock className="w-4 h-4" />
+        <div className="mb-4 space-y-2">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Clock className="h-4 w-4 shrink-0" />
             <span>{durationLabel}</span>
           </div>
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <MapPin className="w-4 h-4" />
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <MapPin className="h-4 w-4 shrink-0" />
             <span>{locationLabel}</span>
           </div>
         </div>
         
-        <div className="flex flex-wrap gap-2 mb-4">
+        <div className="mb-4 flex flex-wrap gap-2">
           {tags.map((tag, index) => (
             <Badge key={index} variant="secondary" className="text-xs">
               {tag}
@@ -93,12 +93,12 @@ export function SkillCard({
           ))}
         </div>
         
-        <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+        <div className="flex items-center justify-between border-t border-border pt-4">
           <div>
-            <p className="text-2xl bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            <p className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-2xl text-transparent">
               {timeCredits}h
             </p>
-            <p className="text-xs text-gray-500">{sc.timeCredits}</p>
+            <p className="text-xs text-muted-foreground">{sc.timeCredits}</p>
           </div>
           <Button className="bg-gradient-to-r from-blue-500 to-purple-600 text-white">
             {sc.bookNow}

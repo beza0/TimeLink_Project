@@ -37,8 +37,8 @@ export function ResetPasswordPage({ onNavigate }: ResetPasswordPageProps) {
             onClick={() => onNavigate?.("landing")}
             className="inline-flex items-center gap-2 mb-4"
           >
-            <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center">
-              <Clock className="w-7 h-7 text-purple-600" />
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-card text-primary shadow-sm">
+              <Clock className="h-7 w-7 text-primary" />
             </div>
             <span className="text-2xl text-white">TimeLink</span>
           </button>
@@ -50,7 +50,7 @@ export function ResetPasswordPage({ onNavigate }: ResetPasswordPageProps) {
           </p>
         </div>
 
-        <div className="bg-white rounded-3xl shadow-2xl p-8">
+        <div className="rounded-3xl bg-card p-8 text-card-foreground shadow-2xl">
           {!passwordReset ? (
             <>
               <form className="space-y-5" onSubmit={handleSubmit}>
@@ -69,7 +69,7 @@ export function ResetPasswordPage({ onNavigate }: ResetPasswordPageProps) {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                     >
                       {showPassword ? (
                         <EyeOff className="w-5 h-5" />
@@ -100,7 +100,7 @@ export function ResetPasswordPage({ onNavigate }: ResetPasswordPageProps) {
                     <button
                       type="button"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                     >
                       {showConfirmPassword ? (
                         <EyeOff className="w-5 h-5" />
@@ -131,11 +131,11 @@ export function ResetPasswordPage({ onNavigate }: ResetPasswordPageProps) {
                 </Button>
               </form>
 
-              <div className="mt-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
-                <p className="text-sm text-gray-700 mb-2">
+              <div className="mt-6 rounded-xl border border-border bg-muted/50 p-4">
+                <p className="mb-2 text-sm text-foreground/90">
                   {a.reqTitle}
                 </p>
-                <ul className="text-xs text-gray-600 space-y-1">
+                <ul className="space-y-1 text-xs text-muted-foreground">
                   <li className={`flex items-center gap-2 ${passwordLengthValid ? 'text-green-600' : ''}`}>
                     <span className={`w-1.5 h-1.5 rounded-full ${passwordLengthValid ? 'bg-green-600' : 'bg-gray-300'}`}></span>
                     {a.reqLen}
@@ -150,12 +150,12 @@ export function ResetPasswordPage({ onNavigate }: ResetPasswordPageProps) {
           ) : (
             <>
               <div className="text-center py-4">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-950/50">
                   <CheckCircle className="w-8 h-8 text-green-600" />
                 </div>
                 
-                <h3 className="text-xl text-gray-900 mb-2">{a.allSet}</h3>
-                <p className="text-gray-600 mb-6 whitespace-pre-line">
+                <h3 className="mb-2 text-xl text-foreground">{a.allSet}</h3>
+                <p className="mb-6 whitespace-pre-line text-muted-foreground">
                   {a.successBody}
                 </p>
 

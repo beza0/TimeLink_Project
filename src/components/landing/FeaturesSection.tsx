@@ -14,35 +14,35 @@ export function FeaturesSection() {
   const f = t.landing.features;
 
   return (
-    <section id="features" className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50">
-      <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl md:text-5xl text-gray-900 mb-4">
+    <section id="features" className="bg-muted/40 px-4 py-20 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl">
+        <div className="mb-16 text-center">
+          <h2 className="mb-4 text-3xl text-foreground sm:text-4xl md:text-5xl">
             {f.title}
           </h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
             {f.subtitle}
           </p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
           {f.items.map((feature, index) => {
             const Icon = icons[index];
             const gradient = gradients[index];
             return (
               <Card 
                 key={index}
-                className="p-8 border-0 bg-white rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2"
+                className="rounded-3xl border border-border/80 bg-card p-8 shadow-lg transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl"
               >
-                <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center mb-6 shadow-lg`}>
-                  <Icon className="w-8 h-8 text-white" />
+                <div className={`mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br ${gradient} shadow-lg`}>
+                  <Icon className="h-8 w-8 text-white" />
                 </div>
                 
-                <h3 className="text-xl sm:text-2xl text-gray-900 mb-3">
+                <h3 className="mb-3 text-xl text-foreground sm:text-2xl">
                   {feature.title}
                 </h3>
                 
-                <p className="text-gray-600">
+                <p className="text-muted-foreground">
                   {feature.description}
                 </p>
               </Card>

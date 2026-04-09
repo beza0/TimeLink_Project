@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs"
 import { Calendar, Clock, Star } from "lucide-react";
 import type { PageType } from "../App";
 import { useLanguage } from "../contexts/LanguageContext";
-import { formatTemplate } from "../i18n/messages";
+import { formatTemplate } from "../language";
 
 interface PastSessionsPageProps {
   onNavigate?: (page: PageType) => void;
@@ -77,17 +77,17 @@ export function PastSessionsPage({ onNavigate }: PastSessionsPageProps) {
   const taughtSessions = pastSessions.filter(s => s.type === "taught");
 
   return (
-    <PageLayout onNavigate={onNavigate} className="min-h-screen bg-gray-50">
+    <PageLayout onNavigate={onNavigate}>
       
       <div className="pt-24 pb-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-5xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-3xl text-gray-900 mb-2">{p.title}</h1>
-            <p className="text-gray-600">{p.subtitle}</p>
+            <h1 className="mb-2 text-3xl text-foreground">{p.title}</h1>
+            <p className="text-muted-foreground">{p.subtitle}</p>
           </div>
 
           <Tabs defaultValue="all" className="space-y-6">
-            <TabsList className="bg-white shadow-lg rounded-xl p-1">
+            <TabsList className="rounded-xl border border-border bg-muted p-1 shadow-lg">
               <TabsTrigger value="all" className="rounded-lg">{p.tabAll}</TabsTrigger>
               <TabsTrigger value="learned" className="rounded-lg">{p.tabLearned}</TabsTrigger>
               <TabsTrigger value="taught" className="rounded-lg">{p.tabTaught}</TabsTrigger>
@@ -127,7 +127,7 @@ function SessionCard({ session }: { session: Record<string, unknown> & { id: str
       : (session.student as { name: string; image: string });
 
   return (
-    <Card className="p-6 rounded-xl border border-gray-100 hover:shadow-md transition-shadow">
+    <Card className="rounded-xl border border-border p-6 transition-shadow hover:shadow-md">
       <div className="flex items-start gap-4">
         <ImageWithFallback 
           src={person.image}
@@ -138,8 +138,8 @@ function SessionCard({ session }: { session: Record<string, unknown> & { id: str
         <div className="flex-1">
           <div className="flex items-start justify-between mb-2">
             <div>
-              <h3 className="text-lg text-gray-900 mb-1">{String(session.title)}</h3>
-              <p className="text-sm text-gray-600">
+              <h3 className="mb-1 text-lg text-foreground">{String(session.title)}</h3>
+              <p className="text-sm text-muted-foreground">
                 {session.type === "learned"
                   ? formatTemplate(p.learnedLine, { name: person.name })
                   : formatTemplate(p.taughtLine, { name: person.name })}
@@ -150,7 +150,7 @@ function SessionCard({ session }: { session: Record<string, unknown> & { id: str
             </Badge>
           </div>
           
-          <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
+          <div className="mb-4 flex items-center gap-4 text-sm text-muted-foreground">
             <div className="flex items-center gap-1">
               <Calendar className="w-4 h-4" />
               <span>{String(session.date)}</span>
@@ -162,7 +162,7 @@ function SessionCard({ session }: { session: Record<string, unknown> & { id: str
           </div>
 
           {session.rated ? (
-            <div className="flex items-center gap-2 text-sm text-gray-600">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <div className="flex items-center gap-1">
                 {[...Array(Number(session.rating) || 0)].map((_, i) => (
                   <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />

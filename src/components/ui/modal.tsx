@@ -23,15 +23,13 @@ export function Modal({ open, onOpenChange, children }: ModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* Backdrop */}
       <div 
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm"
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm dark:bg-black/70"
         onClick={() => onOpenChange(false)}
       />
       
-      {/* Modal Content */}
       <div className="relative z-50 w-full max-w-lg mx-4">
-        <div className="bg-white rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
+        <div className="max-h-[90vh] overflow-y-auto rounded-2xl bg-card text-card-foreground shadow-2xl">
           {children}
         </div>
       </div>
@@ -48,13 +46,13 @@ export function ModalHeader({ children }: { children: React.ReactNode }) {
 }
 
 export function ModalTitle({ children }: { children: React.ReactNode }) {
-  return <h2 className="text-xl text-gray-900">{children}</h2>;
+  return <h2 className="text-xl text-card-foreground">{children}</h2>;
 }
 
 export function ModalDescription({ children }: { children: React.ReactNode }) {
-  return <p className="text-sm text-gray-600 mt-2">{children}</p>;
+  return <p className="mt-2 text-sm text-muted-foreground">{children}</p>;
 }
 
 export function ModalFooter({ children }: { children: React.ReactNode }) {
-  return <div className="flex gap-3 justify-end mt-6">{children}</div>;
+  return <div className="mt-6 flex justify-end gap-3">{children}</div>;
 }

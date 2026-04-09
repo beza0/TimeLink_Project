@@ -8,7 +8,7 @@ import { Progress } from "../components/ui/progress";
 import { Clock, TrendingUp, BookOpen, Award, Plus } from "lucide-react";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useAuth } from "../contexts/AuthContext";
-import { formatTemplate } from "../i18n/messages";
+import { formatTemplate } from "../language";
 
 interface DashboardPageProps {
   onNavigate?: (page: PageType) => void;
@@ -83,7 +83,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
   const displayName = user?.name ?? "Alex";
 
   return (
-    <PageLayout onNavigate={onNavigate} className="min-h-screen bg-gray-50">
+    <PageLayout onNavigate={onNavigate}>
       
       <div className="bg-gradient-to-r from-blue-500 to-purple-600 pt-24 pb-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
@@ -112,9 +112,9 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
-            <Card className="p-6 rounded-2xl border-0 shadow-lg">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl text-gray-900">{d.upcomingTitle}</h2>
+            <Card className="rounded-2xl border-0 p-6 shadow-lg">
+              <div className="mb-6 flex items-center justify-between">
+                <h2 className="text-xl text-foreground">{d.upcomingTitle}</h2>
                 <Button 
                   size="sm" 
                   className="bg-gradient-to-r from-blue-500 to-purple-600 text-white"
@@ -142,8 +142,8 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
           </div>
           
           <div className="space-y-6">
-            <Card className="p-6 rounded-2xl border-0 shadow-lg">
-              <h3 className="text-lg text-gray-900 mb-4">{d.quickActions}</h3>
+            <Card className="rounded-2xl border-0 p-6 shadow-lg">
+              <h3 className="mb-4 text-lg text-foreground">{d.quickActions}</h3>
               <div className="space-y-3">
                 <Button 
                   className="w-full justify-start bg-gradient-to-r from-blue-500 to-purple-600 text-white"
@@ -171,17 +171,17 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
               </div>
             </Card>
             
-            <Card className="p-6 rounded-2xl border-0 shadow-lg">
-              <h3 className="text-lg text-gray-900 mb-4">{d.learningProgress}</h3>
+            <Card className="rounded-2xl border-0 p-6 shadow-lg">
+              <h3 className="mb-4 text-lg text-foreground">{d.learningProgress}</h3>
               <div className="space-y-4">
                 {learningProgress.map((item, index) => (
                   <div key={index}>
                     <div className="flex items-center justify-between mb-2">
                       <div>
-                        <p className="text-sm text-gray-900">{item.skill}</p>
-                        <p className="text-xs text-gray-500">{item.instructor}</p>
+                        <p className="text-sm text-foreground">{item.skill}</p>
+                        <p className="text-xs text-muted-foreground">{item.instructor}</p>
                       </div>
-                      <span className="text-sm text-gray-600">{item.progress}%</span>
+                      <span className="text-sm text-muted-foreground">{item.progress}%</span>
                     </div>
                     <Progress value={item.progress} className="h-2" />
                   </div>

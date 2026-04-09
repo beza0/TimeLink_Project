@@ -59,16 +59,16 @@ export function AddSkillPage({ onNavigate }: AddSkillPageProps) {
   };
 
   return (
-    <PageLayout onNavigate={onNavigate} className="min-h-screen bg-gray-50">
+    <PageLayout onNavigate={onNavigate}>
       
       <div className="pt-24 pb-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-3xl text-gray-900 mb-2">{a.title}</h1>
-            <p className="text-gray-600">{a.subtitle}</p>
+            <h1 className="mb-2 text-3xl text-foreground">{a.title}</h1>
+            <p className="text-muted-foreground">{a.subtitle}</p>
           </div>
 
-          <Card className="p-8 rounded-2xl border-0 shadow-lg">
+          <Card className="rounded-2xl border-0 p-8 shadow-lg">
             <form className="space-y-6">
               <div>
                 <Label htmlFor="title">{a.skillTitle}</Label>
@@ -162,7 +162,7 @@ export function AddSkillPage({ onNavigate }: AddSkillPageProps) {
                   placeholder={a.creditsPh}
                   className="mt-2"
                 />
-                <p className="text-xs text-gray-500 mt-1">{a.creditsHint}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{a.creditsHint}</p>
               </div>
 
               <div>

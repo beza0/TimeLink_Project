@@ -14,30 +14,30 @@ export function TestimonialsSection() {
   const tm = t.landing.testimonials;
 
   return (
-    <section id="testimonials" className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-purple-50 to-blue-50">
-      <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl md:text-5xl text-gray-900 mb-4">
+    <section id="testimonials" className="bg-gradient-to-br from-muted/60 to-muted px-4 py-20 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl">
+        <div className="mb-16 text-center">
+          <h2 className="mb-4 text-3xl text-foreground sm:text-4xl md:text-5xl">
             {tm.title}
           </h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
             {tm.subtitle}
           </p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
           {tm.items.map((testimonial, index) => (
             <Card 
               key={index}
-              className="p-8 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 border-0 bg-white rounded-3xl"
+              className="rounded-3xl border border-border/80 bg-card p-8 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
             >
-              <div className="flex gap-1 mb-4">
+              <div className="mb-4 flex gap-1">
                 {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
+                  <Star key={i} className="h-5 w-5 fill-yellow-400 text-yellow-400" />
                 ))}
               </div>
               
-              <p className="text-gray-700 mb-6 italic">
+              <p className="mb-6 italic text-foreground/90">
                 &ldquo;{testimonial.quote}&rdquo;
               </p>
               
@@ -45,13 +45,13 @@ export function TestimonialsSection() {
                 <ImageWithFallback 
                   src={images[index]}
                   alt={testimonial.name}
-                  className="w-14 h-14 rounded-full object-cover"
+                  className="h-14 w-14 rounded-full object-cover"
                 />
                 <div>
-                  <h4 className="text-gray-900">
+                  <h4 className="text-foreground">
                     {testimonial.name}
                   </h4>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-muted-foreground">
                     {testimonial.role}
                   </p>
                 </div>

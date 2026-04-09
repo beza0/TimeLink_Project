@@ -1,6 +1,17 @@
 <!doctype html>
 <html lang="en" suppressHydrationWarning>
   <head>
+    <script>
+      (function () {
+        try {
+          var k = "timelink-theme";
+          var stored = localStorage.getItem(k);
+          var root = document.documentElement;
+          if (stored === "light") root.classList.remove("dark");
+          else root.classList.add("dark");
+        } catch (e) {}
+      })();
+    </script>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />

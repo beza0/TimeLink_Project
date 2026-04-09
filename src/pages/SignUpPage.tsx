@@ -33,8 +33,8 @@ export function SignUpPage({ onNavigate }: SignUpPageProps) {
             onClick={() => onNavigate?.("landing")}
             className="inline-flex items-center gap-2 mb-4"
           >
-            <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center">
-              <Clock className="w-7 h-7 text-purple-600" />
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-card text-primary shadow-sm">
+              <Clock className="h-7 w-7 text-primary" />
             </div>
             <span className="text-2xl text-white">TimeLink</span>
           </button>
@@ -42,7 +42,7 @@ export function SignUpPage({ onNavigate }: SignUpPageProps) {
           <p className="text-white/80">{a.subtitle}</p>
         </div>
 
-        <div className="bg-white rounded-3xl shadow-2xl p-8">
+        <div className="rounded-3xl bg-card p-8 text-card-foreground shadow-2xl">
           <form className="space-y-5" onSubmit={handleSubmit}>
             <div>
               <Label htmlFor="name">{a.fullName}</Label>
@@ -95,11 +95,11 @@ export function SignUpPage({ onNavigate }: SignUpPageProps) {
 
             <div className="flex items-start gap-2">
               <Checkbox id="terms" className="mt-1" />
-              <label htmlFor="terms" className="text-sm text-gray-600 cursor-pointer">
+              <label htmlFor="terms" className="cursor-pointer text-sm text-muted-foreground">
                 {a.termsPrefix}{" "}
-                <a href="#" className="text-purple-600 hover:underline">{a.terms}</a>
+                <a href="#" className="text-primary hover:underline">{a.terms}</a>
                 {" "}{a.and}{" "}
-                <a href="#" className="text-purple-600 hover:underline">{a.privacy}</a>
+                <a href="#" className="text-primary hover:underline">{a.privacy}</a>
               </label>
             </div>
 
@@ -112,11 +112,11 @@ export function SignUpPage({ onNavigate }: SignUpPageProps) {
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-foreground">
               {a.hasAccount}{" "}
               <button 
                 onClick={() => onNavigate?.("login")}
-                className="text-purple-600 hover:underline"
+                className="text-primary hover:underline"
               >
                 {a.signIn}
               </button>
@@ -126,10 +126,10 @@ export function SignUpPage({ onNavigate }: SignUpPageProps) {
           <div className="mt-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200"></div>
+                <div className="w-full border-t border-border"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">{a.orWith}</span>
+                <span className="bg-card px-2 text-muted-foreground">{a.orWith}</span>
               </div>
             </div>
 

@@ -41,7 +41,7 @@ export function Navbar({ onNavigate }: NavbarProps) {
 
   return (
     <>
-      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-gray-200 bg-white/80 backdrop-blur-md dark:border-gray-800 dark:bg-gray-950/85">
+      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-border bg-background/85 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 min-w-0 items-center justify-between gap-3">
             {/* Logo */}
@@ -52,7 +52,7 @@ export function Navbar({ onNavigate }: NavbarProps) {
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-purple-600">
                 <Clock className="h-6 w-6 text-white" />
               </div>
-              <span className="text-xl whitespace-nowrap text-gray-900 dark:text-gray-100">
+              <span className="text-xl whitespace-nowrap text-foreground">
                 TimeLink
               </span>
             </button>
@@ -61,7 +61,7 @@ export function Navbar({ onNavigate }: NavbarProps) {
             <div className="nav-xl-row min-w-0 gap-6">
               <button
                 onClick={() => handleNavigate("browse")}
-                className="shrink-0 whitespace-nowrap text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+                className="shrink-0 whitespace-nowrap text-muted-foreground transition-colors hover:text-foreground"
               >
                 {t.nav.browseSkills}
               </button>
@@ -70,25 +70,25 @@ export function Navbar({ onNavigate }: NavbarProps) {
                 <>
                   <button
                     onClick={() => handleNavigate("dashboard")}
-                    className="shrink-0 whitespace-nowrap text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+                    className="shrink-0 whitespace-nowrap text-muted-foreground transition-colors hover:text-foreground"
                   >
                     {t.nav.dashboard}
                   </button>
                   <button
                     onClick={() => handleNavigate("messages")}
-                    className="shrink-0 whitespace-nowrap text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+                    className="shrink-0 whitespace-nowrap text-muted-foreground transition-colors hover:text-foreground"
                   >
                     {t.nav.messages}
                   </button>
                   <button
                     onClick={() => handleNavigate("profile")}
-                    className="shrink-0 whitespace-nowrap text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+                    className="shrink-0 whitespace-nowrap text-muted-foreground transition-colors hover:text-foreground"
                   >
                     {t.nav.profile}
                   </button>
                   <button
                     onClick={() => handleNavigate("settings")}
-                    className="shrink-0 whitespace-nowrap text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+                    className="shrink-0 whitespace-nowrap text-muted-foreground transition-colors hover:text-foreground"
                   >
                     {t.nav.settings}
                   </button>
@@ -96,7 +96,7 @@ export function Navbar({ onNavigate }: NavbarProps) {
               )}
               <button
                 onClick={() => handleNavigate("how-it-works")}
-                className="shrink-0 whitespace-nowrap text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+                className="shrink-0 whitespace-nowrap text-muted-foreground transition-colors hover:text-foreground"
               >
                 {t.nav.howItWorks}
               </button>
@@ -126,12 +126,12 @@ export function Navbar({ onNavigate }: NavbarProps) {
             {/* Narrow screens: hamburger → sidebar */}
             <button
               type="button"
-              className="nav-xl-menu-btn shrink-0 rounded-lg p-2 hover:bg-gray-100 dark:hover:bg-gray-800"
+              className="nav-xl-menu-btn shrink-0 rounded-lg p-2 hover:bg-accent"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               aria-label="Toggle menu"
               aria-expanded={isMenuOpen}
             >
-              <Menu className="h-6 w-6" />
+              <Menu className="h-6 w-6 text-foreground" />
             </button>
           </div>
         </div>
