@@ -3540,7 +3540,7 @@ html {
   display: flex;
 }
 
-@media (width >= 80rem) {
+@media (width >= 64rem) {
   .nav-xl-row {
     align-items: center;
     display: flex !important;

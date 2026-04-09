@@ -4,6 +4,7 @@ import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Clock, CheckCircle, Eye, EyeOff } from "lucide-react";
 import type { PageType } from "../App";
+import { useLanguage } from "../contexts/LanguageContext";
 
 interface ResetPasswordPageProps {
   onNavigate?: (page: PageType) => void;
@@ -15,6 +16,8 @@ export function ResetPasswordPage({ onNavigate }: ResetPasswordPageProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [passwordReset, setPasswordReset] = useState(false);
+  const { t } = useLanguage();
+  const a = t.auth.reset;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,7 +32,6 @@ export function ResetPasswordPage({ onNavigate }: ResetPasswordPageProps) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-500 via-purple-600 to-indigo-700 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        {/* Logo */}
         <div className="text-center mb-8">
           <button 
             onClick={() => onNavigate?.("landing")}
@@ -41,23 +43,19 @@ export function ResetPasswordPage({ onNavigate }: ResetPasswordPageProps) {
             <span className="text-2xl text-white">TimeLink</span>
           </button>
           <h1 className="text-3xl text-white mb-2">
-            {passwordReset ? "Password Reset!" : "Reset Password"}
+            {passwordReset ? a.titleDone : a.title}
           </h1>
           <p className="text-white/80">
-            {passwordReset 
-              ? "Your password has been successfully reset" 
-              : "Please enter your new password"
-            }
+            {passwordReset ? a.subtitleDone : a.subtitle}
           </p>
         </div>
 
-        {/* Reset Password Form */}
         <div className="bg-white rounded-3xl shadow-2xl p-8">
           {!passwordReset ? (
             <>
               <form className="space-y-5" onSubmit={handleSubmit}>
                 <div>
-                  <Label htmlFor="password">New Password</Label>
+                  <Label htmlFor="password">{a.newPassword}</Label>
                   <div className="relative mt-2">
                     <Input 
                       id="password"
@@ -82,13 +80,13 @@ export function ResetPasswordPage({ onNavigate }: ResetPasswordPageProps) {
                   </div>
                   {password && !passwordLengthValid && (
                     <p className="text-xs text-red-500 mt-1">
-                      Password must be at least 8 characters
+                      {a.pwdShort}
                     </p>
                   )}
                 </div>
 
                 <div>
-                  <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                  <Label htmlFor="confirmPassword">{a.confirmNew}</Label>
                   <div className="relative mt-2">
                     <Input 
                       id="confirmPassword"
@@ -113,13 +111,13 @@ export function ResetPasswordPage({ onNavigate }: ResetPasswordPageProps) {
                   </div>
                   {confirmPassword && !passwordsMatch && (
                     <p className="text-xs text-red-500 mt-1">
-                      Passwords do not match
+                      {a.pwdMismatch}
                     </p>
                   )}
                   {confirmPassword && passwordsMatch && (
                     <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
                       <CheckCircle className="w-3 h-3" />
-                      Passwords match
+                      {a.pwdMatch}
                     </p>
                   )}
                 </div>
@@ -129,46 +127,43 @@ export function ResetPasswordPage({ onNavigate }: ResetPasswordPageProps) {
                   className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-6"
                   disabled={!passwordsMatch || !passwordLengthValid}
                 >
-                  Reset Password
+                  {a.resetBtn}
                 </Button>
               </form>
 
-              {/* Password Requirements */}
               <div className="mt-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
                 <p className="text-sm text-gray-700 mb-2">
-                  Password must:
+                  {a.reqTitle}
                 </p>
                 <ul className="text-xs text-gray-600 space-y-1">
                   <li className={`flex items-center gap-2 ${passwordLengthValid ? 'text-green-600' : ''}`}>
                     <span className={`w-1.5 h-1.5 rounded-full ${passwordLengthValid ? 'bg-green-600' : 'bg-gray-300'}`}></span>
-                    Be at least 8 characters long
+                    {a.reqLen}
                   </li>
                   <li className={`flex items-center gap-2 ${passwordsMatch && confirmPassword ? 'text-green-600' : ''}`}>
                     <span className={`w-1.5 h-1.5 rounded-full ${passwordsMatch && confirmPassword ? 'bg-green-600' : 'bg-gray-300'}`}></span>
-                    Match in both fields
+                    {a.reqMatch}
                   </li>
                 </ul>
               </div>
             </>
           ) : (
             <>
-              {/* Success State */}
               <div className="text-center py-4">
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <CheckCircle className="w-8 h-8 text-green-600" />
                 </div>
                 
-                <h3 className="text-xl text-gray-900 mb-2">All set!</h3>
-                <p className="text-gray-600 mb-6">
-                  Your password has been successfully reset.<br />
-                  You can now sign in with your new password.
+                <h3 className="text-xl text-gray-900 mb-2">{a.allSet}</h3>
+                <p className="text-gray-600 mb-6 whitespace-pre-line">
+                  {a.successBody}
                 </p>
 
                 <Button 
                   className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-6"
                   onClick={() => onNavigate?.("login")}
                 >
-                  Continue to Sign In
+                  {a.continueSignIn}
                 </Button>
               </div>
             </>

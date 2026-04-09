@@ -13,6 +13,7 @@ import { LoginPage } from "./pages/LoginPage";
 import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
 import { ResetPasswordPage } from "./pages/ResetPasswordPage";
 import { SkillDetailPage } from "./pages/SkillDetailPage";
+import { SettingsPage } from "./pages/SettingsPage";
 import { useAuth, pageRequiresAuth } from "./contexts/AuthContext";
 
 // Basit routing sistemi - sayfalar arası geçiş için
@@ -25,6 +26,7 @@ export type PageType =
   | "add-skill"
   | "past-sessions"
   | "edit-profile"
+  | "settings"
   | "messages"
   | "signup"
   | "login"
@@ -60,6 +62,8 @@ export default function App() {
         return <PastSessionsPage onNavigate={setCurrentPage} />;
       case "edit-profile":
         return <EditProfilePage onNavigate={setCurrentPage} />;
+      case "settings":
+        return <SettingsPage onNavigate={setCurrentPage} />;
       case "messages":
         return <MessagesPage onNavigate={setCurrentPage} />;
       case "signup":

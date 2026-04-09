@@ -1,17 +1,19 @@
 import { Card } from "../ui/card";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
-import { ImageWithFallback } from "../figma/ImageWithFallback";
-import { 
-  Modal, 
-  ModalContent, 
-  ModalHeader, 
-  ModalTitle, 
-  ModalDescription, 
-  ModalFooter 
+import { ImageWithFallback } from "../common/ImageWithFallback";
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalTitle,
+  ModalDescription,
+  ModalFooter,
 } from "../ui/modal";
 import { Calendar, Clock, Video, MapPin } from "lucide-react";
 import { useState } from "react";
+import { useLanguage } from "../../contexts/LanguageContext";
+import { formatTemplate } from "../../i18n/messages";
 
 interface UpcomingSessionProps {
   id: string;
@@ -27,50 +29,65 @@ interface UpcomingSessionProps {
   type: "online" | "in-person";
 }
 
-export function UpcomingSession({ 
-  title, 
-  instructor, 
-  date, 
-  time, 
-  duration, 
-  location, 
-  type 
+export function UpcomingSession({
+  title,
+  instructor,
+  date,
+  time,
+  duration,
+  location,
+  type,
 }: UpcomingSessionProps) {
+  const { t } = useLanguage();
+  const u = t.upcomingSession;
   const [joinDialogOpen, setJoinDialogOpen] = useState(false);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
 
   const handleJoinSession = () => {
     setJoinDialogOpen(false);
-    // Handle join logic
     console.log("Joining session:", title);
   };
 
   const handleCancelSession = () => {
     setCancelDialogOpen(false);
-    // Handle cancel logic
     console.log("Cancelling session:", title);
   };
+
+  const joinDesc = formatTemplate(u.joinDescription, {
+    title,
+    name: instructor.name,
+    date,
+    time,
+    duration,
+    location,
+  });
+
+  const cancelDesc = formatTemplate(u.cancelDescription, {
+    name: instructor.name,
+  });
 
   return (
     <Card className="p-5 rounded-xl border border-gray-100 hover:shadow-md transition-shadow">
       <div className="flex items-start gap-4">
-        <ImageWithFallback 
+        <ImageWithFallback
           src={instructor.image}
           alt={instructor.name}
           className="w-14 h-14 rounded-full object-cover"
         />
-        
+
         <div className="flex-1">
           <div className="flex items-start justify-between mb-2">
             <div>
               <h4 className="text-gray-900 mb-1">{title}</h4>
-              <p className="text-sm text-gray-600">with {instructor.name}</p>
+              <p className="text-sm text-gray-600">
+                {u.with} {instructor.name}
+              </p>
             </div>
             <Badge variant={type === "online" ? "default" : "secondary"}>
-              {type === "online" ? "Online" : "In-Person"}
+              {type === "online" ? u.online : u.inPerson}
             </Badge>
           </div>
-          
+
           <div className="grid grid-cols-2 gap-2 mt-3">
             <div className="flex items-center gap-2 text-xs text-gray-600">
               <Calendar className="w-3 h-3" />
@@ -78,7 +95,9 @@ export function UpcomingSession({
             </div>
             <div className="flex items-center gap-2 text-xs text-gray-600">
               <Clock className="w-3 h-3" />
-              <span>{time} ({duration})</span>
+              <span>
+                {time} ({duration})
+              </span>
             </div>
             <div className="flex items-center gap-2 text-xs text-gray-600 col-span-2">
               {type === "online" ? (
@@ -89,72 +108,64 @@ export function UpcomingSession({
               <span>{location}</span>
             </div>
           </div>
-          
+
           <div className="flex gap-2 mt-4">
-            <Button 
-              size="sm" 
+            <Button
+              size="sm"
               className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 text-white"
               onClick={() => setJoinDialogOpen(true)}
             >
-              Join Session
+              {u.joinSession}
             </Button>
-            
+
             <Modal open={joinDialogOpen} onOpenChange={setJoinDialogOpen}>
               <ModalContent>
                 <ModalHeader>
-                  <ModalTitle>Join Session</ModalTitle>
+                  <ModalTitle>{u.joinTitle}</ModalTitle>
                   <ModalDescription>
-                    You're about to join "{title}" with {instructor.name}.
-                    <br /><br />
-                    Session details:
-                    <br />• Date: {date}
-                    <br />• Time: {time}
-                    <br />• Duration: {duration}
-                    <br />• Location: {location}
+                    <span className="whitespace-pre-line block">{joinDesc}</span>
                   </ModalDescription>
                 </ModalHeader>
                 <ModalFooter>
                   <Button variant="outline" onClick={() => setJoinDialogOpen(false)}>
-                    Not Yet
+                    {u.notYet}
                   </Button>
-                  <Button 
+                  <Button
                     onClick={handleJoinSession}
                     className="bg-gradient-to-r from-blue-500 to-purple-600 text-white"
                   >
-                    Join Now
+                    {u.joinNow}
                   </Button>
                 </ModalFooter>
               </ModalContent>
             </Modal>
 
-            <Button 
-              size="sm" 
-              variant="outline" 
+            <Button
+              size="sm"
+              variant="outline"
               className="flex-1"
               onClick={() => setCancelDialogOpen(true)}
             >
-              Cancel
+              {u.cancel}
             </Button>
-            
+
             <Modal open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
               <ModalContent>
                 <ModalHeader>
-                  <ModalTitle>Cancel Session?</ModalTitle>
+                  <ModalTitle>{u.cancelTitle}</ModalTitle>
                   <ModalDescription>
-                    Are you sure you want to cancel this session? This action cannot be undone.
-                    <br /><br />
-                    Your time credits will be refunded, but {instructor.name} will be notified.
+                    <span className="whitespace-pre-line block">{cancelDesc}</span>
                   </ModalDescription>
                 </ModalHeader>
                 <ModalFooter>
                   <Button variant="outline" onClick={() => setCancelDialogOpen(false)}>
-                    Keep Session
+                    {u.keepSession}
                   </Button>
-                  <Button 
+                  <Button
                     onClick={handleCancelSession}
                     className="bg-red-600 text-white hover:bg-red-700"
                   >
-                    Yes, Cancel Session
+                    {u.yesCancel}
                   </Button>
                 </ModalFooter>
               </ModalContent>

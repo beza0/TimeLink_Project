@@ -1,9 +1,18 @@
 import { Button } from "../ui/button";
 import { Clock, Users, Sparkles } from "lucide-react";
+import type { PageType } from "../../App";
+import { useLanguage } from "../../contexts/LanguageContext";
 
-export function HeroSection() {
+interface HeroSectionProps {
+  onNavigate?: (page: PageType) => void;
+}
+
+export function HeroSection({ onNavigate }: HeroSectionProps) {
+  const { t } = useLanguage();
+  const h = t.landing.hero;
+
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-blue-500 via-purple-600 to-indigo-700 pt-16">
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-blue-500 via-purple-600 to-indigo-700 pt-24 pb-16 sm:pt-28 sm:pb-20">
       {/* Animated background elements */}
       <div className="absolute inset-0 opacity-20">
         <div className="absolute top-20 left-10 animate-pulse">
@@ -24,52 +33,52 @@ export function HeroSection() {
       <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <div className="mb-6">
           <span className="inline-block px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm text-white border border-white/30">
-            Time-Based Skill Exchange Platform
+            {h.badge}
           </span>
         </div>
         
         <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-white mb-6 tracking-tight">
-          Trade Skills. <br />
+          {h.line1} <br />
           <span className="bg-gradient-to-r from-yellow-300 to-pink-300 bg-clip-text text-transparent">
-            Earn Time.
+            {h.line2Earn}
           </span>{" "}
           <br />
-          Learn Anything.
+          {h.line3}
         </h1>
         
         <p className="text-lg sm:text-xl md:text-2xl text-white/90 mb-10 max-w-3xl mx-auto">
-          Exchange your skills with others using time credits. No money needed. 
-          Just your expertise and passion to learn.
+          {h.subtitle}
         </p>
         
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
           <Button 
             size="lg" 
-            className="bg-white text-purple-600 hover:bg-gray-100 shadow-xl px-8 py-6 rounded-full"
+            className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white hover:opacity-90 shadow-xl px-8 py-6 rounded-full"
+            onClick={() => onNavigate?.("signup")}
           >
-            Join Now
+            {h.joinNow}
           </Button>
           <Button 
             size="lg" 
-            variant="outline"
-            className="border-2 border-white text-white hover:bg-white/10 px-8 py-6 rounded-full"
+            className="bg-white text-purple-600 border-2 border-purple-600 hover:bg-purple-50 px-8 py-6 rounded-full"
+            onClick={() => onNavigate?.("how-it-works")}
           >
-            How It Works
+            {h.howItWorks}
           </Button>
         </div>
         
         <div className="mt-16 flex flex-wrap justify-center gap-8 text-white">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-            <span className="text-sm sm:text-base">10,000+ Active Members</span>
+            <span className="text-sm sm:text-base">{h.statMembers}</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
-            <span className="text-sm sm:text-base">50+ Skill Categories</span>
+            <span className="text-sm sm:text-base">{h.statCategories}</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 bg-pink-400 rounded-full animate-pulse"></div>
-            <span className="text-sm sm:text-base">1M+ Hours Exchanged</span>
+            <span className="text-sm sm:text-base">{h.statHours}</span>
           </div>
         </div>
       </div>

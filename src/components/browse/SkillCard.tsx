@@ -1,8 +1,9 @@
 import { Card } from "../ui/card";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
-import { ImageWithFallback } from "../figma/ImageWithFallback";
+import { ImageWithFallback } from "../common/ImageWithFallback";
 import { Clock, Star, MapPin } from "lucide-react";
+import { useLanguage } from "../../contexts/LanguageContext";
 
 interface SkillCardProps {
   id: string;
@@ -31,6 +32,13 @@ export function SkillCard({
   image, 
   tags 
 }: SkillCardProps) {
+  const { t } = useLanguage();
+  const b = t.browse;
+  const sc = t.skillCard;
+  const categoryLabel = b.categoryLabels[category] ?? category;
+  const durationLabel = b.durationLabels[duration] ?? duration;
+  const locationLabel = b.locationLineLabels[location] ?? location;
+
   return (
     <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-0 rounded-2xl">
       <div className="relative h-48 overflow-hidden">
@@ -40,7 +48,7 @@ export function SkillCard({
           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
         />
         <Badge className="absolute top-3 right-3 bg-white/90 text-gray-900 hover:bg-white">
-          {category}
+          {categoryLabel}
         </Badge>
       </div>
       
@@ -69,11 +77,11 @@ export function SkillCard({
         <div className="space-y-2 mb-4">
           <div className="flex items-center gap-2 text-sm text-gray-600">
             <Clock className="w-4 h-4" />
-            <span>{duration}</span>
+            <span>{durationLabel}</span>
           </div>
           <div className="flex items-center gap-2 text-sm text-gray-600">
             <MapPin className="w-4 h-4" />
-            <span>{location}</span>
+            <span>{locationLabel}</span>
           </div>
         </div>
         
@@ -90,10 +98,10 @@ export function SkillCard({
             <p className="text-2xl bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
               {timeCredits}h
             </p>
-            <p className="text-xs text-gray-500">Time Credits</p>
+            <p className="text-xs text-gray-500">{sc.timeCredits}</p>
           </div>
           <Button className="bg-gradient-to-r from-blue-500 to-purple-600 text-white">
-            Book Now
+            {sc.bookNow}
           </Button>
         </div>
       </div>

@@ -1,5 +1,4 @@
-import { Navbar } from "../components/layout/Navbar";
-import { Footer } from "../components/layout/Footer";
+import { PageLayout } from "../components/layout/PageLayout";
 import { HeroSection } from "../components/landing/HeroSection";
 import { FeaturesSection } from "../components/landing/FeaturesSection";
 import { CategoriesSection } from "../components/landing/CategoriesSection";
@@ -12,13 +11,11 @@ interface LandingPageProps {
 
 export function LandingPage({ onNavigate }: LandingPageProps) {
   return (
-    <div className="min-h-screen">
-      <Navbar onNavigate={onNavigate} />
-      <HeroSection />
+    <PageLayout onNavigate={onNavigate}>
+      <HeroSection onNavigate={onNavigate} />
       <FeaturesSection />
       <CategoriesSection />
       <TestimonialsSection />
-      <Footer />
-    </div>
+    </PageLayout>
   );
 }

@@ -1,21 +1,21 @@
-import { Navbar } from "../components/layout/Navbar";
-import { Footer } from "../components/layout/Footer";
+import { PageLayout } from "../components/layout/PageLayout";
 import { Card } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
-import { ImageWithFallback } from "../components/figma/ImageWithFallback";
+import { ImageWithFallback } from "../components/common/ImageWithFallback";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
-import { 
-  Star, 
-  Clock, 
-  MapPin, 
+import {
+  Star,
+  Clock,
   Calendar,
   Users,
   Award,
   Video,
-  MessageCircle
+  MessageCircle,
 } from "lucide-react";
 import type { PageType } from "../App";
+import { useLanguage } from "../contexts/LanguageContext";
+import { formatTemplate } from "../i18n/messages";
 
 interface SkillDetailPageProps {
   onNavigate?: (page: PageType) => void;
@@ -55,99 +55,79 @@ const reviews = [
 ];
 
 export function SkillDetailPage({ onNavigate }: SkillDetailPageProps) {
+  const { t } = useLanguage();
+  const s = t.skillDetail;
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar onNavigate={onNavigate} />
+    <PageLayout onNavigate={onNavigate} className="min-h-screen bg-gray-50">
       
       <div className="pt-24 pb-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto">
-          {/* Header */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Main Content */}
             <div className="lg:col-span-2 space-y-6">
               <Card className="p-8 rounded-2xl border-0 shadow-lg">
-                <Badge className="mb-4">Programming</Badge>
-                <h1 className="text-3xl text-gray-900 mb-4">Web Development Fundamentals</h1>
+                <Badge className="mb-4">{s.categoryProgramming}</Badge>
+                <h1 className="text-3xl text-gray-900 mb-4">{s.courseTitle}</h1>
                 
                 <div className="flex items-center gap-6 mb-6 flex-wrap">
                   <div className="flex items-center gap-2">
                     <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-                    <span>5.0 (156 reviews)</span>
+                    <span>
+                      {formatTemplate(s.reviewsCount, { rating: "5.0", count: "156" })}
+                    </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Users className="w-5 h-5 text-gray-600" />
-                    <span>234 students</span>
+                    <span>{formatTemplate(s.studentsCount, { n: "234" })}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Clock className="w-5 h-5 text-gray-600" />
-                    <span>2 hours/session</span>
+                    <span>{s.perSession}</span>
                   </div>
                 </div>
 
                 <Tabs defaultValue="about" className="mt-6">
                   <TabsList>
-                    <TabsTrigger value="about">About</TabsTrigger>
-                    <TabsTrigger value="curriculum">Curriculum</TabsTrigger>
-                    <TabsTrigger value="reviews">Reviews</TabsTrigger>
+                    <TabsTrigger value="about">{s.tabAbout}</TabsTrigger>
+                    <TabsTrigger value="curriculum">{s.tabCurriculum}</TabsTrigger>
+                    <TabsTrigger value="reviews">{s.tabReviews}</TabsTrigger>
                   </TabsList>
 
                   <TabsContent value="about" className="mt-6 space-y-4">
                     <div>
-                      <h3 className="text-lg text-gray-900 mb-2">What you'll learn</h3>
+                      <h3 className="text-lg text-gray-900 mb-2">{s.whatYouLearn}</h3>
                       <ul className="space-y-2 text-gray-600">
-                        <li className="flex items-start gap-2">
-                          <span className="text-green-500">✓</span>
-                          <span>Build modern, responsive websites from scratch</span>
-                        </li>
-                        <li className="flex items-start gap-2">
-                          <span className="text-green-500">✓</span>
-                          <span>Master HTML, CSS, and JavaScript fundamentals</span>
-                        </li>
-                        <li className="flex items-start gap-2">
-                          <span className="text-green-500">✓</span>
-                          <span>Understand web development best practices</span>
-                        </li>
-                        <li className="flex items-start gap-2">
-                          <span className="text-green-500">✓</span>
-                          <span>Create interactive web applications</span>
-                        </li>
+                        {s.learnItems.map((item, i) => (
+                          <li key={i} className="flex items-start gap-2">
+                            <span className="text-green-500">✓</span>
+                            <span>{item}</span>
+                          </li>
+                        ))}
                       </ul>
                     </div>
 
                     <div>
-                      <h3 className="text-lg text-gray-900 mb-2">Description</h3>
+                      <h3 className="text-lg text-gray-900 mb-2">{s.descriptionTitle}</h3>
                       <p className="text-gray-600">
-                        This comprehensive web development course covers everything you need to know to start 
-                        building modern websites. We'll start with HTML and CSS basics, then move on to JavaScript 
-                        and interactive web applications. Perfect for complete beginners!
+                        {s.descriptionBody}
                       </p>
                     </div>
 
                     <div>
-                      <h3 className="text-lg text-gray-900 mb-2">Prerequisites</h3>
+                      <h3 className="text-lg text-gray-900 mb-2">{s.prerequisitesTitle}</h3>
                       <p className="text-gray-600">
-                        No prior programming experience required. Just bring your enthusiasm and willingness to learn!
+                        {s.prerequisitesBody}
                       </p>
                     </div>
                   </TabsContent>
 
                   <TabsContent value="curriculum" className="mt-6 space-y-3">
-                    <Card className="p-4 border border-gray-200 rounded-xl">
-                      <h4 className="text-gray-900 mb-1">Week 1: HTML & CSS Basics</h4>
-                      <p className="text-sm text-gray-600">Learn the building blocks of web pages</p>
-                    </Card>
-                    <Card className="p-4 border border-gray-200 rounded-xl">
-                      <h4 className="text-gray-900 mb-1">Week 2: Responsive Design</h4>
-                      <p className="text-sm text-gray-600">Make your websites work on all devices</p>
-                    </Card>
-                    <Card className="p-4 border border-gray-200 rounded-xl">
-                      <h4 className="text-gray-900 mb-1">Week 3: JavaScript Fundamentals</h4>
-                      <p className="text-sm text-gray-600">Add interactivity to your websites</p>
-                    </Card>
-                    <Card className="p-4 border border-gray-200 rounded-xl">
-                      <h4 className="text-gray-900 mb-1">Week 4: Final Project</h4>
-                      <p className="text-sm text-gray-600">Build your first complete website</p>
-                    </Card>
+                    {s.curriculum.map((week, i) => (
+                      <Card key={i} className="p-4 border border-gray-200 rounded-xl">
+                        <h4 className="text-gray-900 mb-1">{week.title}</h4>
+                        <p className="text-sm text-gray-600">{week.desc}</p>
+                      </Card>
+                    ))}
                   </TabsContent>
 
                   <TabsContent value="reviews" className="mt-6 space-y-4">
@@ -179,10 +159,8 @@ export function SkillDetailPage({ onNavigate }: SkillDetailPageProps) {
               </Card>
             </div>
 
-            {/* Sidebar */}
             <div className="lg:col-span-1">
               <Card className="p-6 rounded-2xl border-0 shadow-lg sticky top-24">
-                {/* Instructor */}
                 <div className="flex items-center gap-4 mb-6 pb-6 border-b border-gray-200">
                   <ImageWithFallback 
                     src="https://images.unsplash.com/photo-1655249481446-25d575f1c054?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwcm9mZXNzaW9uYWwlMjBoZWFkc2hvdCUyMHdvbWFufGVufDF8fHx8MTc2MDE2NzQxMnww&ixlib=rb-4.1.0&q=80&w=1080"
@@ -190,43 +168,42 @@ export function SkillDetailPage({ onNavigate }: SkillDetailPageProps) {
                     className="w-16 h-16 rounded-full object-cover"
                   />
                   <div>
-                    <p className="text-sm text-gray-600 mb-1">Instructor</p>
+                    <p className="text-sm text-gray-600 mb-1">{s.instructor}</p>
                     <h3 className="text-gray-900">Emily Chen</h3>
                     <div className="flex items-center gap-1 mt-1">
                       <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                      <span className="text-sm">5.0 (156 reviews)</span>
+                      <span className="text-sm">
+                        {formatTemplate(s.reviewsCount, { rating: "5.0", count: "156" })}
+                      </span>
                     </div>
                   </div>
                 </div>
 
-                {/* Price */}
                 <div className="mb-6">
                   <p className="text-3xl bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
-                    4 Time Credits
+                    {s.creditsTitle}
                   </p>
-                  <p className="text-sm text-gray-600">per session</p>
+                  <p className="text-sm text-gray-600">{s.perSessionLabel}</p>
                 </div>
 
-                {/* Details */}
                 <div className="space-y-3 mb-6">
                   <div className="flex items-center gap-3 text-sm">
                     <Video className="w-5 h-5 text-gray-600" />
-                    <span className="text-gray-700">Online sessions</span>
+                    <span className="text-gray-700">{s.detailOnline}</span>
                   </div>
                   <div className="flex items-center gap-3 text-sm">
                     <Calendar className="w-5 h-5 text-gray-600" />
-                    <span className="text-gray-700">Flexible scheduling</span>
+                    <span className="text-gray-700">{s.detailSchedule}</span>
                   </div>
                   <div className="flex items-center gap-3 text-sm">
                     <Award className="w-5 h-5 text-gray-600" />
-                    <span className="text-gray-700">Certificate upon completion</span>
+                    <span className="text-gray-700">{s.detailCert}</span>
                   </div>
                 </div>
 
-                {/* Actions */}
                 <div className="space-y-3">
                   <Button className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-6">
-                    Book Session
+                    {s.bookSession}
                   </Button>
                   <Button 
                     variant="outline" 
@@ -234,7 +211,7 @@ export function SkillDetailPage({ onNavigate }: SkillDetailPageProps) {
                     onClick={() => onNavigate?.("messages")}
                   >
                     <MessageCircle className="w-4 h-4 mr-2" />
-                    Message Instructor
+                    {s.messageInstructor}
                   </Button>
                 </div>
               </Card>
@@ -243,7 +220,6 @@ export function SkillDetailPage({ onNavigate }: SkillDetailPageProps) {
         </div>
       </div>
       
-      <Footer />
-    </div>
+    </PageLayout>
   );
 }

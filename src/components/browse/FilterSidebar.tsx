@@ -3,15 +3,24 @@ import { Button } from "../ui/button";
 import { Checkbox } from "../ui/checkbox";
 import { Slider } from "../ui/slider";
 import { Label } from "../ui/label";
+import { useLanguage } from "../../contexts/LanguageContext";
+import { formatTemplate } from "../../i18n/messages";
 
-const categories = [
-  "Sports", "Arts", "Languages", "Programming", "Music", 
-  "Cooking", "Photography", "Writing", "Design"
-];
+const FILTER_CATEGORIES = [
+  "Sports",
+  "Arts",
+  "Languages",
+  "Programming",
+  "Music",
+  "Cooking",
+  "Photography",
+  "Writing",
+  "Design",
+] as const;
 
-const locations = ["Online", "In-Person"];
+const LOCATION_KEYS = ["Online", "In-Person"] as const;
 
-interface Filters {
+export interface Filters {
   categories: string[];
   locations: string[];
   minRating: number;
@@ -24,16 +33,21 @@ interface FilterSidebarProps {
 }
 
 export function FilterSidebar({ filters, onFiltersChange }: FilterSidebarProps) {
+  const { t } = useLanguage();
+  const fi = t.filter;
+  const catLabels = t.browse.categoryLabels;
+  const locLabels = t.browse.locationLabels;
+
   const toggleCategory = (category: string) => {
     const newCategories = filters.categories.includes(category)
-      ? filters.categories.filter(c => c !== category)
+      ? filters.categories.filter((c) => c !== category)
       : [...filters.categories, category];
     onFiltersChange({ ...filters, categories: newCategories });
   };
 
   const toggleLocation = (location: string) => {
     const newLocations = filters.locations.includes(location)
-      ? filters.locations.filter(l => l !== location)
+      ? filters.locations.filter((l) => l !== location)
       : [...filters.locations, location];
     onFiltersChange({ ...filters, locations: newLocations });
   };
@@ -47,22 +61,23 @@ export function FilterSidebar({ filters, onFiltersChange }: FilterSidebarProps) 
       categories: [],
       locations: [],
       minRating: 0,
-      timeCreditsRange: [1, 20]
+      timeCreditsRange: [1, 20],
     });
   };
 
   return (
-    <Card className="p-6 rounded-2xl border-0 shadow-lg sticky top-24">
+    <Card className="w-full p-6 rounded-2xl border-0 shadow-lg">
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg text-gray-900">Filters</h3>
-        <Button variant="ghost" size="sm" onClick={clearFilters}>Clear All</Button>
+        <h3 className="text-lg text-gray-900">{fi.title}</h3>
+        <Button variant="ghost" size="sm" onClick={clearFilters}>
+          {fi.clearAll}
+        </Button>
       </div>
       
-      {/* Categories */}
       <div className="mb-6">
-        <Label className="text-sm text-gray-900 mb-3 block">Categories</Label>
+        <Label className="text-sm text-gray-900 mb-3 block">{fi.categories}</Label>
         <div className="space-y-3 max-h-48 overflow-y-auto">
-          {categories.map((category) => (
+          {FILTER_CATEGORIES.map((category) => (
             <div key={category} className="flex items-center gap-2">
               <Checkbox 
                 id={category} 
@@ -73,18 +88,17 @@ export function FilterSidebar({ filters, onFiltersChange }: FilterSidebarProps) 
                 htmlFor={category} 
                 className="text-sm text-gray-600 cursor-pointer"
               >
-                {category}
+                {catLabels[category] ?? category}
               </label>
             </div>
           ))}
         </div>
       </div>
       
-      {/* Location */}
       <div className="mb-6">
-        <Label className="text-sm text-gray-900 mb-3 block">Location</Label>
+        <Label className="text-sm text-gray-900 mb-3 block">{fi.location}</Label>
         <div className="space-y-3">
-          {locations.map((location) => (
+          {LOCATION_KEYS.map((location) => (
             <div key={location} className="flex items-center gap-2">
               <Checkbox 
                 id={location}
@@ -95,47 +109,56 @@ export function FilterSidebar({ filters, onFiltersChange }: FilterSidebarProps) 
                 htmlFor={location} 
                 className="text-sm text-gray-600 cursor-pointer"
               >
-                {location}
+                {locLabels[location] ?? location}
               </label>
             </div>
           ))}
         </div>
       </div>
       
-      {/* Time Credits Range */}
       <div className="mb-6">
         <Label className="text-sm text-gray-900 mb-3 block">
-          Time Credits: {filters.timeCreditsRange[0]}-{filters.timeCreditsRange[1]} hours
+          {formatTemplate(fi.timeCreditsRange, {
+            min: filters.timeCreditsRange[0],
+            max: filters.timeCreditsRange[1],
+          })}
         </Label>
         <Slider 
           value={filters.timeCreditsRange} 
-          onValueChange={(value) => onFiltersChange({ ...filters, timeCreditsRange: value as [number, number] })}
+          onValueChange={(value) =>
+            onFiltersChange({
+              ...filters,
+              timeCreditsRange: value as [number, number],
+            })
+          }
           max={20} 
           step={1} 
           className="mb-2" 
         />
         <div className="flex justify-between text-xs text-gray-500">
-          <span>1h</span>
-          <span>20h</span>
+          <span>{fi.h1}</span>
+          <span>{fi.h20}</span>
         </div>
       </div>
       
-      {/* Rating */}
       <div className="mb-6">
-        <Label className="text-sm text-gray-900 mb-3 block">Minimum Rating</Label>
+        <Label className="text-sm text-gray-900 mb-3 block">{fi.minRating}</Label>
         <div className="space-y-3">
           {[4, 3, 2, 1].map((rating) => (
             <div key={rating} className="flex items-center gap-2">
               <Checkbox 
                 id={`rating-${rating}`}
                 checked={filters.minRating === rating}
-                onCheckedChange={() => setMinRating(filters.minRating === rating ? 0 : rating)}
+                onCheckedChange={() =>
+                  setMinRating(filters.minRating === rating ? 0 : rating)
+                }
               />
               <label 
                 htmlFor={`rating-${rating}`} 
                 className="text-sm text-gray-600 cursor-pointer"
               >
-                {rating}+ Stars
+                {rating}
+                {fi.starsSuffix}
               </label>
             </div>
           ))}

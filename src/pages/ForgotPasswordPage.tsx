@@ -4,6 +4,7 @@ import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Clock, ArrowLeft, Mail, CheckCircle } from "lucide-react";
 import type { PageType } from "../App";
+import { useLanguage } from "../contexts/LanguageContext";
 
 interface ForgotPasswordPageProps {
   onNavigate?: (page: PageType) => void;
@@ -12,6 +13,8 @@ interface ForgotPasswordPageProps {
 export function ForgotPasswordPage({ onNavigate }: ForgotPasswordPageProps) {
   const [emailSent, setEmailSent] = useState(false);
   const [email, setEmail] = useState("");
+  const { t } = useLanguage();
+  const a = t.auth.forgot;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,7 +24,6 @@ export function ForgotPasswordPage({ onNavigate }: ForgotPasswordPageProps) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-500 via-purple-600 to-indigo-700 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        {/* Logo */}
         <div className="text-center mb-8">
           <button 
             onClick={() => onNavigate?.("landing")}
@@ -33,23 +35,19 @@ export function ForgotPasswordPage({ onNavigate }: ForgotPasswordPageProps) {
             <span className="text-2xl text-white">TimeLink</span>
           </button>
           <h1 className="text-3xl text-white mb-2">
-            {emailSent ? "Check your email" : "Forgot Password?"}
+            {emailSent ? a.titleSent : a.title}
           </h1>
           <p className="text-white/80">
-            {emailSent 
-              ? "We've sent you a password reset link" 
-              : "No worries, we'll send you reset instructions"
-            }
+            {emailSent ? a.subtitleSent : a.subtitle}
           </p>
         </div>
 
-        {/* Forgot Password Form */}
         <div className="bg-white rounded-3xl shadow-2xl p-8">
           {!emailSent ? (
             <>
               <form className="space-y-5" onSubmit={handleSubmit}>
                 <div>
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email">{t.auth.login.email}</Label>
                   <Input 
                     id="email"
                     type="email"
@@ -65,7 +63,7 @@ export function ForgotPasswordPage({ onNavigate }: ForgotPasswordPageProps) {
                   type="submit"
                   className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-6"
                 >
-                  Send Reset Link
+                  {a.sendLink}
                 </Button>
               </form>
 
@@ -75,28 +73,26 @@ export function ForgotPasswordPage({ onNavigate }: ForgotPasswordPageProps) {
                   className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
                 >
                   <ArrowLeft className="w-4 h-4" />
-                  Back to sign in
+                  {a.backSignIn}
                 </button>
               </div>
 
-              {/* Info Box */}
               <div className="mt-6 p-4 bg-blue-50 rounded-xl border border-blue-100">
                 <p className="text-sm text-gray-700">
-                  <strong>Note:</strong> If you don't see the email in your inbox, please check your spam folder.
+                  <strong>{t.common.note}:</strong> {a.noteBox}
                 </p>
               </div>
             </>
           ) : (
             <>
-              {/* Success State */}
               <div className="text-center py-4">
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <CheckCircle className="w-8 h-8 text-green-600" />
                 </div>
                 
-                <h3 className="text-xl text-gray-900 mb-2">Email sent!</h3>
+                <h3 className="text-xl text-gray-900 mb-2">{a.emailSent}</h3>
                 <p className="text-gray-600 mb-6">
-                  We've sent a password reset link to<br />
+                  {a.sentToPrefix}<br />
                   <strong>{email}</strong>
                 </p>
 
@@ -106,7 +102,7 @@ export function ForgotPasswordPage({ onNavigate }: ForgotPasswordPageProps) {
                     onClick={() => onNavigate?.("reset-password")}
                   >
                     <Mail className="w-4 h-4 mr-2" />
-                    Open Email Link (Demo)
+                    {a.openDemo}
                   </Button>
 
                   <Button 
@@ -114,7 +110,7 @@ export function ForgotPasswordPage({ onNavigate }: ForgotPasswordPageProps) {
                     className="w-full"
                     onClick={() => setEmailSent(false)}
                   >
-                    Didn't receive? Resend
+                    {a.resend}
                   </Button>
                 </div>
               </div>
@@ -125,7 +121,7 @@ export function ForgotPasswordPage({ onNavigate }: ForgotPasswordPageProps) {
                   className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
                 >
                   <ArrowLeft className="w-4 h-4" />
-                  Back to sign in
+                  {a.backSignIn}
                 </button>
               </div>
             </>

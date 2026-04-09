@@ -1,47 +1,32 @@
-import { Navbar } from "../components/layout/Navbar";
-import { Footer } from "../components/layout/Footer";
+import { PageLayout } from "../components/layout/PageLayout";
 import type { PageType } from "../App";
-
-interface DashboardPageProps {
-  onNavigate?: (page: PageType) => void;
-}
 import { StatCard } from "../components/dashboard/StatCard";
 import { UpcomingSession } from "../components/dashboard/UpcomingSession";
 import { Card } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Progress } from "../components/ui/progress";
 import { Clock, TrendingUp, BookOpen, Award, Plus } from "lucide-react";
+import { useLanguage } from "../contexts/LanguageContext";
+import { useAuth } from "../contexts/AuthContext";
+import { formatTemplate } from "../i18n/messages";
 
-const stats = [
-  {
-    title: "Time Credits",
-    value: "24h",
-    icon: Clock,
-    gradient: "from-blue-500 to-cyan-500",
-    description: "+6h this month"
-  },
-  {
-    title: "Skills Learning",
-    value: "5",
-    icon: BookOpen,
-    gradient: "from-purple-500 to-pink-500",
-    description: "3 active sessions"
-  },
-  {
-    title: "Skills Teaching",
-    value: "3",
-    icon: TrendingUp,
-    gradient: "from-orange-500 to-red-500",
-    description: "12 students"
-  },
-  {
-    title: "Achievements",
-    value: "8",
-    icon: Award,
-    gradient: "from-green-500 to-emerald-500",
-    description: "2 new badges"
-  }
-];
+interface DashboardPageProps {
+  onNavigate?: (page: PageType) => void;
+}
+
+const statIcons = [
+  Clock,
+  BookOpen,
+  TrendingUp,
+  Award,
+] as const;
+const statGradients = [
+  "from-blue-500 to-cyan-500",
+  "from-purple-500 to-pink-500",
+  "from-orange-500 to-red-500",
+  "from-green-500 to-emerald-500",
+] as const;
+const statValues = ["24h", "5", "3", "8"] as const;
 
 const upcomingSessions = [
   {
@@ -92,44 +77,51 @@ const learningProgress = [
 ];
 
 export function DashboardPage({ onNavigate }: DashboardPageProps) {
+  const { t } = useLanguage();
+  const d = t.dashboard;
+  const { user } = useAuth();
+  const displayName = user?.name ?? "Alex";
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar onNavigate={onNavigate} />
+    <PageLayout onNavigate={onNavigate} className="min-h-screen bg-gray-50">
       
-      {/* Header */}
       <div className="bg-gradient-to-r from-blue-500 to-purple-600 pt-24 pb-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <h1 className="text-3xl sm:text-4xl text-white mb-2">
-            Welcome back, Alex! 👋
+            {formatTemplate(d.welcome, { name: displayName })}
           </h1>
           <p className="text-lg text-white/90">
-            Here's what's happening with your learning journey
+            {d.subtitle}
           </p>
         </div>
       </div>
       
-      {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 pb-12">
-        {/* Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {stats.map((stat, index) => (
-            <StatCard key={index} {...stat} />
+          {d.stats.map((stat, index) => (
+            <StatCard
+              key={index}
+              title={stat.title}
+              value={statValues[index]}
+              icon={statIcons[index]}
+              gradient={statGradients[index]}
+              description={stat.description}
+            />
           ))}
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Upcoming Sessions */}
           <div className="lg:col-span-2">
             <Card className="p-6 rounded-2xl border-0 shadow-lg">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl text-gray-900">Upcoming Sessions</h2>
+                <h2 className="text-xl text-gray-900">{d.upcomingTitle}</h2>
                 <Button 
                   size="sm" 
                   className="bg-gradient-to-r from-blue-500 to-purple-600 text-white"
                   onClick={() => onNavigate?.("browse")}
                 >
                   <Plus className="w-4 h-4 mr-1" />
-                  Book New
+                  {d.bookNew}
                 </Button>
               </div>
               
@@ -144,23 +136,21 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                 className="w-full mt-4"
                 onClick={() => onNavigate?.("past-sessions")}
               >
-                View All Sessions
+                {d.viewAllSessions}
               </Button>
             </Card>
           </div>
           
-          {/* Quick Actions & Progress */}
           <div className="space-y-6">
-            {/* Quick Actions */}
             <Card className="p-6 rounded-2xl border-0 shadow-lg">
-              <h3 className="text-lg text-gray-900 mb-4">Quick Actions</h3>
+              <h3 className="text-lg text-gray-900 mb-4">{d.quickActions}</h3>
               <div className="space-y-3">
                 <Button 
                   className="w-full justify-start bg-gradient-to-r from-blue-500 to-purple-600 text-white"
                   onClick={() => onNavigate?.("add-skill")}
                 >
                   <Plus className="w-4 h-4 mr-2" />
-                  Offer a New Skill
+                  {d.offerSkill}
                 </Button>
                 <Button 
                   variant="outline" 
@@ -168,7 +158,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                   onClick={() => onNavigate?.("browse")}
                 >
                   <BookOpen className="w-4 h-4 mr-2" />
-                  Browse Skills
+                  {d.browseSkills}
                 </Button>
                 <Button 
                   variant="outline" 
@@ -176,14 +166,13 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                   onClick={() => onNavigate?.("past-sessions")}
                 >
                   <Clock className="w-4 h-4 mr-2" />
-                  View Past Sessions
+                  {d.viewPastSessions}
                 </Button>
               </div>
             </Card>
             
-            {/* Learning Progress */}
             <Card className="p-6 rounded-2xl border-0 shadow-lg">
-              <h3 className="text-lg text-gray-900 mb-4">Learning Progress</h3>
+              <h3 className="text-lg text-gray-900 mb-4">{d.learningProgress}</h3>
               <div className="space-y-4">
                 {learningProgress.map((item, index) => (
                   <div key={index}>
@@ -203,7 +192,6 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
         </div>
       </div>
       
-      <Footer />
-    </div>
+    </PageLayout>
   );
 }

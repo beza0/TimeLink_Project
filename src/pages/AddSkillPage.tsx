@@ -1,5 +1,4 @@
-import { Navbar } from "../components/layout/Navbar";
-import { Footer } from "../components/layout/Footer";
+import { PageLayout } from "../components/layout/PageLayout";
 import { Card } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
@@ -11,22 +10,33 @@ import { Badge } from "../components/ui/badge";
 import { X } from "lucide-react";
 import { useState } from "react";
 import type { PageType } from "../App";
+import { useLanguage } from "../contexts/LanguageContext";
 
 interface AddSkillPageProps {
   onNavigate?: (page: PageType) => void;
 }
 
-const categories = ["Sports", "Arts", "Languages", "Programming", "Music", "Cooking", "Photography", "Writing", "Design"];
-const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+const CATEGORY_KEYS = [
+  "Sports", "Arts", "Languages", "Programming", "Music",
+  "Cooking", "Photography", "Writing", "Design",
+] as const;
+
+const DAY_KEYS = [
+  "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday",
+] as const;
 
 export function AddSkillPage({ onNavigate }: AddSkillPageProps) {
+  const { t } = useLanguage();
+  const a = t.addSkill;
+  const catLabels = t.browse.categoryLabels;
+
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
   const [tags, setTags] = useState<string[]>([]);
   const [currentTag, setCurrentTag] = useState("");
   const [locationType, setLocationType] = useState<string[]>([]);
 
   const toggleDay = (day: string) => {
-    setSelectedDays(prev => 
+    setSelectedDays(prev =>
       prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day]
     );
   };
@@ -39,82 +49,78 @@ export function AddSkillPage({ onNavigate }: AddSkillPageProps) {
   };
 
   const removeTag = (tag: string) => {
-    setTags(tags.filter(t => t !== tag));
+    setTags(tags.filter((x) => x !== tag));
   };
 
   const toggleLocationType = (type: string) => {
     setLocationType(prev =>
-      prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]
+      prev.includes(type) ? prev.filter(ty => ty !== type) : [...prev, type]
     );
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar onNavigate={onNavigate} />
+    <PageLayout onNavigate={onNavigate} className="min-h-screen bg-gray-50">
       
       <div className="pt-24 pb-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-3xl text-gray-900 mb-2">Add New Skill</h1>
-            <p className="text-gray-600">Share your expertise with the TimeLink community</p>
+            <h1 className="text-3xl text-gray-900 mb-2">{a.title}</h1>
+            <p className="text-gray-600">{a.subtitle}</p>
           </div>
 
           <Card className="p-8 rounded-2xl border-0 shadow-lg">
             <form className="space-y-6">
-              {/* Skill Title */}
               <div>
-                <Label htmlFor="title">Skill Title *</Label>
+                <Label htmlFor="title">{a.skillTitle}</Label>
                 <Input 
                   id="title"
-                  placeholder="e.g., Beginner Guitar Lessons"
+                  placeholder={a.skillTitlePh}
                   className="mt-2"
                 />
               </div>
 
-              {/* Category */}
               <div>
-                <Label htmlFor="category">Category *</Label>
+                <Label htmlFor="category">{a.category}</Label>
                 <Select>
                   <SelectTrigger className="mt-2">
-                    <SelectValue placeholder="Select a category" />
+                    <SelectValue placeholder={a.selectCategory} />
                   </SelectTrigger>
                   <SelectContent>
-                    {categories.map(cat => (
-                      <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                    {CATEGORY_KEYS.map(cat => (
+                      <SelectItem key={cat} value={cat}>
+                        {catLabels[cat] ?? cat}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
 
-              {/* Description */}
               <div>
-                <Label htmlFor="description">Description *</Label>
+                <Label htmlFor="description">{a.description}</Label>
                 <Textarea 
                   id="description"
-                  placeholder="Describe what you'll teach, who it's for, and what students will learn..."
+                  placeholder={a.descriptionPh}
                   className="mt-2 min-h-32"
                 />
               </div>
 
-              {/* Expertise Level */}
               <div>
-                <Label htmlFor="level">Your Expertise Level *</Label>
+                <Label htmlFor="level">{a.level}</Label>
                 <Select>
                   <SelectTrigger className="mt-2">
-                    <SelectValue placeholder="Select your level" />
+                    <SelectValue placeholder={a.selectLevel} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="beginner">Beginner</SelectItem>
-                    <SelectItem value="intermediate">Intermediate</SelectItem>
-                    <SelectItem value="advanced">Advanced</SelectItem>
-                    <SelectItem value="expert">Expert</SelectItem>
+                    <SelectItem value="beginner">{a.levelBeginner}</SelectItem>
+                    <SelectItem value="intermediate">{a.levelIntermediate}</SelectItem>
+                    <SelectItem value="advanced">{a.levelAdvanced}</SelectItem>
+                    <SelectItem value="expert">{a.levelExpert}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
-              {/* Location Type */}
               <div>
-                <Label>Session Type *</Label>
+                <Label>{a.sessionType}</Label>
                 <div className="flex gap-4 mt-2">
                   <div className="flex items-center gap-2">
                     <Checkbox 
@@ -122,7 +128,7 @@ export function AddSkillPage({ onNavigate }: AddSkillPageProps) {
                       checked={locationType.includes("online")}
                       onCheckedChange={() => toggleLocationType("online")}
                     />
-                    <label htmlFor="online" className="text-sm cursor-pointer">Online</label>
+                    <label htmlFor="online" className="text-sm cursor-pointer">{a.online}</label>
                   </div>
                   <div className="flex items-center gap-2">
                     <Checkbox 
@@ -130,75 +136,72 @@ export function AddSkillPage({ onNavigate }: AddSkillPageProps) {
                       checked={locationType.includes("in-person")}
                       onCheckedChange={() => toggleLocationType("in-person")}
                     />
-                    <label htmlFor="in-person" className="text-sm cursor-pointer">In-Person</label>
+                    <label htmlFor="in-person" className="text-sm cursor-pointer">{a.inPerson}</label>
                   </div>
                 </div>
               </div>
 
-              {/* Location (if in-person) */}
               {locationType.includes("in-person") && (
                 <div>
-                  <Label htmlFor="location">Location</Label>
+                  <Label htmlFor="location">{a.location}</Label>
                   <Input 
                     id="location"
-                    placeholder="e.g., Downtown Studio, Central Park"
+                    placeholder={a.locationPh}
                     className="mt-2"
                   />
                 </div>
               )}
 
-              {/* Time Credits per Hour */}
               <div>
-                <Label htmlFor="credits">Time Credits per Hour *</Label>
+                <Label htmlFor="credits">{a.creditsPerHour}</Label>
                 <Input 
                   id="credits"
                   type="number"
                   min="1"
                   max="10"
-                  placeholder="e.g., 2"
+                  placeholder={a.creditsPh}
                   className="mt-2"
                 />
-                <p className="text-xs text-gray-500 mt-1">Standard rate is 1 credit per hour</p>
+                <p className="text-xs text-gray-500 mt-1">{a.creditsHint}</p>
               </div>
 
-              {/* Session Duration */}
               <div>
-                <Label htmlFor="duration">Session Duration (minutes) *</Label>
+                <Label htmlFor="duration">{a.durationMin}</Label>
                 <Select>
                   <SelectTrigger className="mt-2">
-                    <SelectValue placeholder="Select duration" />
+                    <SelectValue placeholder={a.selectDuration} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="30">30 minutes</SelectItem>
-                    <SelectItem value="60">1 hour</SelectItem>
-                    <SelectItem value="90">1.5 hours</SelectItem>
-                    <SelectItem value="120">2 hours</SelectItem>
-                    <SelectItem value="180">3 hours</SelectItem>
+                    <SelectItem value="30">{a.dur30}</SelectItem>
+                    <SelectItem value="60">{a.dur60}</SelectItem>
+                    <SelectItem value="90">{a.dur90}</SelectItem>
+                    <SelectItem value="120">{a.dur120}</SelectItem>
+                    <SelectItem value="180">{a.dur180}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
-              {/* Available Days */}
               <div>
-                <Label>Available Days *</Label>
+                <Label>{a.availableDays}</Label>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-2">
-                  {days.map(day => (
-                    <div key={day} className="flex items-center gap-2">
+                  {DAY_KEYS.map((dayKey, i) => (
+                    <div key={dayKey} className="flex items-center gap-2">
                       <Checkbox 
-                        id={day}
-                        checked={selectedDays.includes(day)}
-                        onCheckedChange={() => toggleDay(day)}
+                        id={dayKey}
+                        checked={selectedDays.includes(dayKey)}
+                        onCheckedChange={() => toggleDay(dayKey)}
                       />
-                      <label htmlFor={day} className="text-sm cursor-pointer">{day}</label>
+                      <label htmlFor={dayKey} className="text-sm cursor-pointer">
+                        {a.days[i]}
+                      </label>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* Available Hours */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="start-time">Available From *</Label>
+                  <Label htmlFor="start-time">{a.availableFrom}</Label>
                   <Input 
                     id="start-time"
                     type="time"
@@ -206,7 +209,7 @@ export function AddSkillPage({ onNavigate }: AddSkillPageProps) {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="end-time">Available Until *</Label>
+                  <Label htmlFor="end-time">{a.availableUntil}</Label>
                   <Input 
                     id="end-time"
                     type="time"
@@ -215,18 +218,17 @@ export function AddSkillPage({ onNavigate }: AddSkillPageProps) {
                 </div>
               </div>
 
-              {/* Tags */}
               <div>
-                <Label htmlFor="tags">Tags (Optional)</Label>
+                <Label htmlFor="tags">{a.tags}</Label>
                 <div className="flex gap-2 mt-2">
                   <Input 
                     id="tags"
                     value={currentTag}
                     onChange={(e) => setCurrentTag(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
-                    placeholder="Add tags and press Enter"
+                    placeholder={a.tagsPh}
                   />
-                  <Button type="button" onClick={addTag}>Add</Button>
+                  <Button type="button" onClick={addTag}>{a.add}</Button>
                 </div>
                 {tags.length > 0 && (
                   <div className="flex flex-wrap gap-2 mt-3">
@@ -242,7 +244,6 @@ export function AddSkillPage({ onNavigate }: AddSkillPageProps) {
                 )}
               </div>
 
-              {/* Buttons */}
               <div className="flex gap-4 pt-6">
                 <Button 
                   type="button"
@@ -250,13 +251,13 @@ export function AddSkillPage({ onNavigate }: AddSkillPageProps) {
                   className="flex-1"
                   onClick={() => onNavigate?.("dashboard")}
                 >
-                  Cancel
+                  {t.common.cancel}
                 </Button>
                 <Button 
                   type="submit"
                   className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 text-white"
                 >
-                  Publish Skill
+                  {a.publish}
                 </Button>
               </div>
             </form>
@@ -264,7 +265,6 @@ export function AddSkillPage({ onNavigate }: AddSkillPageProps) {
         </div>
       </div>
       
-      <Footer />
-    </div>
+    </PageLayout>
   );
 }

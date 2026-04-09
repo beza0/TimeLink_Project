@@ -1,13 +1,14 @@
-import { Navbar } from "../components/layout/Navbar";
-import { Footer } from "../components/layout/Footer";
+import { PageLayout } from "../components/layout/PageLayout";
 import { Card } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Badge } from "../components/ui/badge";
-import { ImageWithFallback } from "../components/figma/ImageWithFallback";
+import { ImageWithFallback } from "../components/common/ImageWithFallback";
 import { Search, Send, Check, X } from "lucide-react";
 import { useState } from "react";
 import type { PageType } from "../App";
+import { useLanguage } from "../contexts/LanguageContext";
+import { formatTemplate } from "../i18n/messages";
 
 interface MessagesPageProps {
   onNavigate?: (page: PageType) => void;
@@ -51,7 +52,7 @@ const conversations = [
   }
 ];
 
-const messages = [
+const chatThread = [
   {
     id: "1",
     sender: "other",
@@ -85,6 +86,8 @@ const messages = [
 ];
 
 export function MessagesPage({ onNavigate }: MessagesPageProps) {
+  const { t } = useLanguage();
+  const m = t.messagesPage;
   const [selectedConversation, setSelectedConversation] = useState(conversations[0]);
   const [messageText, setMessageText] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -94,30 +97,26 @@ export function MessagesPage({ onNavigate }: MessagesPageProps) {
   );
 
   const handleAcceptRequest = (convId: string) => {
-    // Handle accept logic
     console.log("Accepted:", convId);
   };
 
   const handleRejectRequest = (convId: string) => {
-    // Handle reject logic
     console.log("Rejected:", convId);
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar onNavigate={onNavigate} />
+    <PageLayout onNavigate={onNavigate} className="min-h-screen bg-gray-50">
       
       <div className="pt-20 pb-4 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto h-[calc(100vh-7rem)]">
           <Card className="h-full rounded-2xl border-0 shadow-lg overflow-hidden flex flex-row">
-            {/* Conversations List - Sol taraf */}
             <div className="w-96 border-r border-gray-200 flex flex-col flex-shrink-0">
               <div className="p-4 border-b border-gray-200">
-                <h2 className="text-xl text-gray-900 mb-4">Messages</h2>
+                <h2 className="text-xl text-gray-900 mb-4">{m.title}</h2>
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <Input 
-                    placeholder="Search conversations..."
+                    placeholder={m.searchPlaceholder}
                     className="pl-10"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
@@ -155,10 +154,10 @@ export function MessagesPage({ onNavigate }: MessagesPageProps) {
                         </div>
                         
                         {conv.status === "pending-incoming" && (
-                          <Badge variant="secondary" className="mt-2">Pending Request</Badge>
+                          <Badge variant="secondary" className="mt-2">{m.pendingRequest}</Badge>
                         )}
                         {conv.status === "pending-outgoing" && (
-                          <Badge variant="outline" className="mt-2">Waiting for approval</Badge>
+                          <Badge variant="outline" className="mt-2">{m.waitingApproval}</Badge>
                         )}
                       </div>
                     </div>
@@ -167,9 +166,7 @@ export function MessagesPage({ onNavigate }: MessagesPageProps) {
               </div>
             </div>
 
-            {/* Chat Area - Sağ taraf */}
             <div className="flex-1 flex flex-col min-w-0">
-              {/* Chat Header */}
               <div className="p-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0">
                 <div className="flex items-center gap-3">
                   <ImageWithFallback 
@@ -179,16 +176,15 @@ export function MessagesPage({ onNavigate }: MessagesPageProps) {
                   />
                   <div>
                     <h3 className="text-gray-900">{selectedConversation.user.name}</h3>
-                    <p className="text-xs text-gray-500">Active now</p>
+                    <p className="text-xs text-gray-500">{m.activeNow}</p>
                   </div>
                 </div>
               </div>
 
-              {/* Pending Request Banner - Incoming */}
               {selectedConversation.status === "pending-incoming" && (
                 <div className="p-4 bg-blue-50 border-b border-blue-100">
                   <p className="text-sm text-gray-700 mb-3">
-                    {selectedConversation.user.name} wants to connect with you.
+                    {formatTemplate(m.wantsConnect, { name: selectedConversation.user.name })}
                   </p>
                   <div className="flex gap-2">
                     <Button 
@@ -197,7 +193,7 @@ export function MessagesPage({ onNavigate }: MessagesPageProps) {
                       onClick={() => handleAcceptRequest(selectedConversation.id)}
                     >
                       <Check className="w-4 h-4 mr-1" />
-                      Accept
+                      {m.accept}
                     </Button>
                     <Button 
                       size="sm"
@@ -205,25 +201,23 @@ export function MessagesPage({ onNavigate }: MessagesPageProps) {
                       onClick={() => handleRejectRequest(selectedConversation.id)}
                     >
                       <X className="w-4 h-4 mr-1" />
-                      Decline
+                      {m.decline}
                     </Button>
                   </div>
                 </div>
               )}
 
-              {/* Pending Request Banner - Outgoing */}
               {selectedConversation.status === "pending-outgoing" && (
                 <div className="p-4 bg-yellow-50 border-b border-yellow-100">
                   <p className="text-sm text-gray-700">
-                    Waiting for {selectedConversation.user.name} to accept your message request...
+                    {formatTemplate(m.waitingOutgoing, { name: selectedConversation.user.name })}
                   </p>
                 </div>
               )}
 
-              {/* Messages */}
               <div className="flex-1 overflow-y-auto p-4 space-y-4">
                 {selectedConversation.status === "accepted" ? (
-                  messages.map(msg => (
+                  chatThread.map(msg => (
                     <div
                       key={msg.id}
                       className={`flex ${msg.sender === "me" ? "justify-end" : "justify-start"}`}
@@ -244,23 +238,24 @@ export function MessagesPage({ onNavigate }: MessagesPageProps) {
                   ))
                 ) : selectedConversation.status === "pending-incoming" ? (
                   <div className="text-center text-gray-500 py-12">
-                    <p className="mb-2">Message Request</p>
-                    <p className="text-sm">Accept the request above to view the message and start chatting</p>
+                    <p className="mb-2">{m.messageRequest}</p>
+                    <p className="text-sm">{m.acceptHint}</p>
                   </div>
                 ) : (
                   <div className="text-center text-gray-500 py-12">
-                    <p className="mb-2">Request Sent</p>
-                    <p className="text-sm">Waiting for {selectedConversation.user.name} to accept your message request</p>
+                    <p className="mb-2">{m.requestSent}</p>
+                    <p className="text-sm">
+                      {formatTemplate(m.waitingAccept, { name: selectedConversation.user.name })}
+                    </p>
                   </div>
                 )}
               </div>
 
-              {/* Message Input */}
               {selectedConversation.status === "accepted" && (
                 <div className="p-4 border-t border-gray-200">
                   <div className="flex gap-2">
                     <Input 
-                      placeholder="Type a message..."
+                      placeholder={m.typeMessage}
                       value={messageText}
                       onChange={(e) => setMessageText(e.target.value)}
                       onKeyPress={(e) => e.key === 'Enter' && setMessageText("")}
@@ -276,7 +271,6 @@ export function MessagesPage({ onNavigate }: MessagesPageProps) {
         </div>
       </div>
       
-      <Footer />
-    </div>
+    </PageLayout>
   );
 }

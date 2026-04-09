@@ -1,33 +1,34 @@
-import { Navbar } from "../components/layout/Navbar";
-import { Footer } from "../components/layout/Footer";
+import { PageLayout } from "../components/layout/PageLayout";
 import { Card } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Textarea } from "../components/ui/textarea";
-import { ImageWithFallback } from "../components/figma/ImageWithFallback";
+import { ImageWithFallback } from "../components/common/ImageWithFallback";
 import { Camera } from "lucide-react";
 import type { PageType } from "../App";
+import { useLanguage } from "../contexts/LanguageContext";
 
 interface EditProfilePageProps {
   onNavigate?: (page: PageType) => void;
 }
 
 export function EditProfilePage({ onNavigate }: EditProfilePageProps) {
+  const { t } = useLanguage();
+  const e = t.editProfile;
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar onNavigate={onNavigate} />
+    <PageLayout onNavigate={onNavigate} className="min-h-screen bg-gray-50">
       
       <div className="pt-24 pb-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-3xl text-gray-900 mb-2">Edit Profile</h1>
-            <p className="text-gray-600">Update your personal information</p>
+            <h1 className="text-3xl text-gray-900 mb-2">{e.title}</h1>
+            <p className="text-gray-600">{e.subtitle}</p>
           </div>
 
           <Card className="p-8 rounded-2xl border-0 shadow-lg">
             <form className="space-y-6">
-              {/* Profile Picture */}
               <div className="flex flex-col items-center mb-6">
                 <div className="relative">
                   <ImageWithFallback 
@@ -42,12 +43,11 @@ export function EditProfilePage({ onNavigate }: EditProfilePageProps) {
                     <Camera className="w-5 h-5" />
                   </button>
                 </div>
-                <p className="text-sm text-gray-500 mt-3">Click the camera icon to update your photo</p>
+                <p className="text-sm text-gray-500 mt-3">{e.photoHint}</p>
               </div>
 
-              {/* Full Name */}
               <div>
-                <Label htmlFor="name">Full Name *</Label>
+                <Label htmlFor="name">{e.fullName}</Label>
                 <Input 
                   id="name"
                   defaultValue="Alex Thompson"
@@ -55,9 +55,8 @@ export function EditProfilePage({ onNavigate }: EditProfilePageProps) {
                 />
               </div>
 
-              {/* Email */}
               <div>
-                <Label htmlFor="email">Email *</Label>
+                <Label htmlFor="email">{e.email}</Label>
                 <Input 
                   id="email"
                   type="email"
@@ -66,31 +65,28 @@ export function EditProfilePage({ onNavigate }: EditProfilePageProps) {
                 />
               </div>
 
-              {/* Bio */}
               <div>
-                <Label htmlFor="bio">Bio</Label>
+                <Label htmlFor="bio">{e.bio}</Label>
                 <Textarea 
                   id="bio"
                   defaultValue="Passionate about teaching web development and learning new languages. Love connecting with people through skill exchange!"
                   className="mt-2 min-h-24"
-                  placeholder="Tell us about yourself..."
+                  placeholder={e.bioPh}
                 />
               </div>
 
-              {/* Location */}
               <div>
-                <Label htmlFor="location">Location</Label>
+                <Label htmlFor="location">{e.location}</Label>
                 <Input 
                   id="location"
                   defaultValue="San Francisco, CA"
-                  placeholder="City, Country"
+                  placeholder={e.locationPh}
                   className="mt-2"
                 />
               </div>
 
-              {/* Phone Number */}
               <div>
-                <Label htmlFor="phone">Phone Number</Label>
+                <Label htmlFor="phone">{e.phone}</Label>
                 <Input 
                   id="phone"
                   type="tel"
@@ -99,49 +95,45 @@ export function EditProfilePage({ onNavigate }: EditProfilePageProps) {
                 />
               </div>
 
-              {/* Languages */}
               <div>
-                <Label htmlFor="languages">Languages</Label>
+                <Label htmlFor="languages">{e.languages}</Label>
                 <Input 
                   id="languages"
                   defaultValue="English, Spanish"
-                  placeholder="Separate with commas"
+                  placeholder={e.languagesPh}
                   className="mt-2"
                 />
               </div>
 
-              {/* Website/Portfolio */}
               <div>
-                <Label htmlFor="website">Website/Portfolio</Label>
+                <Label htmlFor="website">{e.website}</Label>
                 <Input 
                   id="website"
                   type="url"
-                  placeholder="https://yourwebsite.com"
+                  placeholder={e.websitePh}
                   className="mt-2"
                 />
               </div>
 
-              {/* Social Media */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="linkedin">LinkedIn</Label>
+                  <Label htmlFor="linkedin">{e.linkedin}</Label>
                   <Input 
                     id="linkedin"
-                    placeholder="linkedin.com/in/username"
+                    placeholder={e.linkedinPh}
                     className="mt-2"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="twitter">Twitter</Label>
+                  <Label htmlFor="twitter">{e.twitter}</Label>
                   <Input 
                     id="twitter"
-                    placeholder="@username"
+                    placeholder={e.twitterPh}
                     className="mt-2"
                   />
                 </div>
               </div>
 
-              {/* Buttons */}
               <div className="flex gap-4 pt-6">
                 <Button 
                   type="button"
@@ -149,13 +141,13 @@ export function EditProfilePage({ onNavigate }: EditProfilePageProps) {
                   className="flex-1"
                   onClick={() => onNavigate?.("profile")}
                 >
-                  Cancel
+                  {t.common.cancel}
                 </Button>
                 <Button 
                   type="submit"
                   className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 text-white"
                 >
-                  Save Changes
+                  {t.common.saveChanges}
                 </Button>
               </div>
             </form>
@@ -163,7 +155,6 @@ export function EditProfilePage({ onNavigate }: EditProfilePageProps) {
         </div>
       </div>
       
-      <Footer />
-    </div>
+    </PageLayout>
   );
 }

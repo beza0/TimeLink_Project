@@ -5,10 +5,10 @@ import { Checkbox } from "../components/ui/checkbox";
 import { Clock } from "lucide-react";
 import type { PageType } from "../App";
 import { useAuth } from "../contexts/AuthContext";
+import { useLanguage } from "../contexts/LanguageContext";
 
 interface LoginPageProps {
   onNavigate?: (page: PageType) => void;
-  /** Girişten sonra açılacak sayfa (ör. korumalı sayfaya yönlendirme). */
   returnTo?: PageType;
 }
 
@@ -17,6 +17,8 @@ export function LoginPage({
   returnTo = "dashboard",
 }: LoginPageProps) {
   const { login } = useAuth();
+  const { t } = useLanguage();
+  const a = t.auth.login;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,7 +32,6 @@ export function LoginPage({
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-500 via-purple-600 to-indigo-700 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        {/* Logo */}
         <div className="text-center mb-8">
           <button 
             onClick={() => onNavigate?.("landing")}
@@ -41,15 +42,14 @@ export function LoginPage({
             </div>
             <span className="text-2xl text-white">TimeLink</span>
           </button>
-          <h1 className="text-3xl text-white mb-2">Welcome back</h1>
-          <p className="text-white/80">Sign in to continue your learning journey</p>
+          <h1 className="text-3xl text-white mb-2">{a.welcome}</h1>
+          <p className="text-white/80">{a.subtitle}</p>
         </div>
 
-        {/* Login Form */}
         <div className="bg-white rounded-3xl shadow-2xl p-8">
           <form className="space-y-5" onSubmit={handleSubmit}>
             <div>
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{a.email}</Label>
               <Input
                 id="email"
                 name="email"
@@ -63,13 +63,13 @@ export function LoginPage({
 
             <div>
               <div className="flex items-center justify-between">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password">{a.password}</Label>
                 <button
                   type="button"
                   onClick={() => onNavigate?.("forgot-password")}
                   className="text-sm text-purple-600 hover:underline"
                 >
-                  Forgot?
+                  {a.forgot}
                 </button>
               </div>
               <Input
@@ -85,7 +85,7 @@ export function LoginPage({
             <div className="flex items-center gap-2">
               <Checkbox id="remember" />
               <label htmlFor="remember" className="text-sm text-gray-600 cursor-pointer">
-                Remember me
+                {a.remember}
               </label>
             </div>
 
@@ -93,39 +93,38 @@ export function LoginPage({
               type="submit"
               className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-6"
             >
-              Sign In
+              {a.signIn}
             </Button>
           </form>
 
           <div className="mt-6 text-center space-y-3">
             <p className="text-sm text-gray-600">
-              Don't have an account?{" "}
+              {a.noAccount}{" "}
               <button 
                 onClick={() => onNavigate?.("signup")}
                 className="text-purple-600 hover:underline"
               >
-                Sign up
+                {a.signUp}
               </button>
             </p>
             <p className="text-sm text-gray-600">
-              or{" "}
+              {a.orContinue}{" "}
               <button 
                 onClick={() => onNavigate?.("how-it-works")}
                 className="text-purple-600 hover:underline"
               >
-                Continue without signing in
+                {a.continueGuest}
               </button>
             </p>
           </div>
 
-          {/* Social Login */}
           <div className="mt-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-200"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">Or continue with</span>
+                <span className="px-2 bg-white text-gray-500">{a.orWith}</span>
               </div>
             </div>
 

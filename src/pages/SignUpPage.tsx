@@ -5,6 +5,7 @@ import { Checkbox } from "../components/ui/checkbox";
 import { Clock } from "lucide-react";
 import type { PageType } from "../App";
 import { useAuth } from "../contexts/AuthContext";
+import { useLanguage } from "../contexts/LanguageContext";
 
 interface SignUpPageProps {
   onNavigate?: (page: PageType) => void;
@@ -12,6 +13,8 @@ interface SignUpPageProps {
 
 export function SignUpPage({ onNavigate }: SignUpPageProps) {
   const { login } = useAuth();
+  const { t } = useLanguage();
+  const a = t.auth.signup;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,7 +28,6 @@ export function SignUpPage({ onNavigate }: SignUpPageProps) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-500 via-purple-600 to-indigo-700 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        {/* Logo */}
         <div className="text-center mb-8">
           <button 
             onClick={() => onNavigate?.("landing")}
@@ -36,15 +38,14 @@ export function SignUpPage({ onNavigate }: SignUpPageProps) {
             </div>
             <span className="text-2xl text-white">TimeLink</span>
           </button>
-          <h1 className="text-3xl text-white mb-2">Create your account</h1>
-          <p className="text-white/80">Start your skill exchange journey today</p>
+          <h1 className="text-3xl text-white mb-2">{a.title}</h1>
+          <p className="text-white/80">{a.subtitle}</p>
         </div>
 
-        {/* Sign Up Form */}
         <div className="bg-white rounded-3xl shadow-2xl p-8">
           <form className="space-y-5" onSubmit={handleSubmit}>
             <div>
-              <Label htmlFor="name">Full Name</Label>
+              <Label htmlFor="name">{a.fullName}</Label>
               <Input
                 id="name"
                 name="name"
@@ -56,7 +57,7 @@ export function SignUpPage({ onNavigate }: SignUpPageProps) {
             </div>
 
             <div>
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{a.email}</Label>
               <Input
                 id="email"
                 name="email"
@@ -69,7 +70,7 @@ export function SignUpPage({ onNavigate }: SignUpPageProps) {
             </div>
 
             <div>
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">{a.password}</Label>
               <Input
                 id="password"
                 name="password"
@@ -81,7 +82,7 @@ export function SignUpPage({ onNavigate }: SignUpPageProps) {
             </div>
 
             <div>
-              <Label htmlFor="confirm-password">Confirm Password</Label>
+              <Label htmlFor="confirm-password">{a.confirmPassword}</Label>
               <Input
                 id="confirm-password"
                 name="confirm-password"
@@ -95,10 +96,10 @@ export function SignUpPage({ onNavigate }: SignUpPageProps) {
             <div className="flex items-start gap-2">
               <Checkbox id="terms" className="mt-1" />
               <label htmlFor="terms" className="text-sm text-gray-600 cursor-pointer">
-                I agree to the{" "}
-                <a href="#" className="text-purple-600 hover:underline">Terms of Service</a>
-                {" "}and{" "}
-                <a href="#" className="text-purple-600 hover:underline">Privacy Policy</a>
+                {a.termsPrefix}{" "}
+                <a href="#" className="text-purple-600 hover:underline">{a.terms}</a>
+                {" "}{a.and}{" "}
+                <a href="#" className="text-purple-600 hover:underline">{a.privacy}</a>
               </label>
             </div>
 
@@ -106,30 +107,29 @@ export function SignUpPage({ onNavigate }: SignUpPageProps) {
               type="submit"
               className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-6"
             >
-              Create Account
+              {a.createAccount}
             </Button>
           </form>
 
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
-              Already have an account?{" "}
+              {a.hasAccount}{" "}
               <button 
                 onClick={() => onNavigate?.("login")}
                 className="text-purple-600 hover:underline"
               >
-                Sign in
+                {a.signIn}
               </button>
             </p>
           </div>
 
-          {/* Social Sign Up */}
           <div className="mt-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-200"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">Or continue with</span>
+                <span className="px-2 bg-white text-gray-500">{a.orWith}</span>
               </div>
             </div>
 

@@ -81,6 +81,7 @@ export function pageRequiresAuth(page: PageType): boolean {
     "profile",
     "messages",
     "edit-profile",
+    "settings",
     "add-skill",
     "past-sessions",
   ];
