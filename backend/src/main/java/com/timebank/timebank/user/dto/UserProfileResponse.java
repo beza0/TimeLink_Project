@@ -15,6 +15,7 @@ public class UserProfileResponse {
     private String website;
     private String linkedin;
     private String twitter;
+    private String avatarUrl;
     private long timeCreditMinutes;
     private Instant createdAt;
 
@@ -29,6 +30,7 @@ public class UserProfileResponse {
             String website,
             String linkedin,
             String twitter,
+            String avatarUrl,
             long timeCreditMinutes,
             Instant createdAt
     ) {
@@ -42,6 +44,7 @@ public class UserProfileResponse {
         this.website = website;
         this.linkedin = linkedin;
         this.twitter = twitter;
+        this.avatarUrl = avatarUrl;
         this.timeCreditMinutes = timeCreditMinutes;
         this.createdAt = createdAt;
     }
@@ -84,6 +87,10 @@ public class UserProfileResponse {
 
     public String getTwitter() {
         return twitter;
+    }
+
+    public String getAvatarUrl() {
+        return avatarUrl;
     }
 
     public long getTimeCreditMinutes() {

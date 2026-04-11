@@ -1,3 +1,7 @@
+# Kullanım: docker compose up --build
+# Arayüz: http://localhost:3000  (nginx → /api → api:8080)
+# API doğrudan: http://localhost:8080
+
 services:
   db:
     image: postgres:16-alpine
@@ -6,7 +10,7 @@ services:
       POSTGRES_USER: timebank_user
       POSTGRES_PASSWORD: "1234"
       POSTGRES_DB: timebank
-    
+
     ports:
       - "5433:5432"
     volumes:
@@ -31,6 +35,16 @@ services:
     depends_on:
       db:
         condition: service_healthy
+
+  web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: timelink-web
+    ports:
+      - "3000:80"
+    depends_on:
+      - api
 
 volumes:
   timebank_pgdata:

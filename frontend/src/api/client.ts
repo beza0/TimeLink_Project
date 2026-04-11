@@ -14,6 +14,19 @@ export class ApiError extends Error {
 
 export type ApiFetchOptions = RequestInit & { token?: string | null };
 
+/** Boş veya anlamsız API mesajlarında yerelleştirilmiş fallback kullanın. */
+export function apiErrorDisplayMessage(err: unknown, fallback: string): string {
+  if (err instanceof ApiError) {
+    const m = err.message.trim();
+    return m || fallback;
+  }
+  if (err instanceof Error) {
+    const m = err.message.trim();
+    return m || fallback;
+  }
+  return fallback;
+}
+
 export async function apiFetch<T>(
   path: string,
   opts: ApiFetchOptions = {},
@@ -53,7 +66,7 @@ export async function apiFetch<T>(
       "message" in data &&
       typeof (data as { message: unknown }).message === "string"
         ? (data as { message: string }).message
-        : res.statusText || "Request failed";
+        : res.statusText || "";
     throw new ApiError(msg, res.status, data);
   }
 

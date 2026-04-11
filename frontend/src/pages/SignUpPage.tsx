@@ -8,7 +8,7 @@ import type { PageType } from "../App";
 import { useAuth } from "../contexts/AuthContext";
 import { useLanguage } from "../contexts/LanguageContext";
 import { loginRequest, registerRequest } from "../api/auth";
-import { ApiError } from "../api/client";
+import { apiErrorDisplayMessage } from "../api/client";
 
 interface SignUpPageProps {
   onNavigate?: (page: PageType) => void;
@@ -52,13 +52,7 @@ export function SignUpPage({ onNavigate }: SignUpPageProps) {
       sessionStorage.setItem("timelink_profile_onboarding", "1");
       onNavigate?.("edit-profile");
     } catch (err) {
-      const msg =
-        err instanceof ApiError
-          ? err.message
-          : err instanceof Error
-            ? err.message
-            : a.errorFailed;
-      setError(msg);
+      setError(apiErrorDisplayMessage(err, a.errorFailed));
     } finally {
       setLoading(false);
     }

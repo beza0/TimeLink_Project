@@ -12,7 +12,9 @@ import {
   Clock,
   Edit,
   Share2,
+  Mail,
 } from "lucide-react";
+import { ImageWithFallback } from "../components/common/ImageWithFallback";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useAuth } from "../contexts/AuthContext";
 import { formatTemplate } from "../language";
@@ -25,16 +27,11 @@ import {
   type ReviewDto,
   type UserRatingSummaryDto,
 } from "../api/reviews";
+import { initialsFromFullName } from "../lib/initials";
+
 interface ProfilePageProps {
   onNavigate?: (page: PageType) => void;
   onOpenSkillDetail?: (skillId: string) => void;
-}
-
-function initialsFromName(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return "?";
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
 function formatCreditMinutes(minutes: number, locale: string): string {
@@ -112,6 +109,10 @@ export function ProfilePage({
   }, [load]);
 
   const displayName = profile?.fullName ?? user?.name ?? "";
+  const displayEmail = profile?.email?.trim() || user?.email?.trim() || "";
+  /** API + oturum (kayıttan hemen sonra profil isteği gecikse bile pp görünsün) */
+  const avatarSrc =
+    profile?.avatarUrl?.trim() || user?.avatarUrl?.trim() || null;
   const creditLabel = profile
     ? formatCreditMinutes(profile.timeCreditMinutes, locale)
     : "—";
@@ -134,17 +135,33 @@ export function ProfilePage({
       <div className="bg-gradient-to-r from-blue-500 to-purple-600 pt-24 pb-32 px-4 sm:px-6 lg:px-8">
         <div className="max-w-5xl mx-auto">
           <div className="flex flex-col md:flex-row gap-6 items-start">
-            <div
-              className="w-32 h-32 rounded-2xl shadow-2xl border-4 border-white flex items-center justify-center text-3xl font-semibold text-white bg-white/20 shrink-0"
-              aria-hidden
-            >
-              {initialsFromName(displayName)}
-            </div>
+            {avatarSrc ? (
+              <ImageWithFallback
+                src={avatarSrc}
+                alt=""
+                className="w-32 h-32 rounded-2xl border-4 border-white object-cover shadow-2xl shrink-0"
+              />
+            ) : (
+              <div
+                className="w-32 h-32 rounded-2xl shadow-2xl border-4 border-white flex items-center justify-center text-3xl font-semibold text-white bg-white/20 shrink-0"
+                aria-hidden
+              >
+                {initialsFromFullName(displayName)}
+              </div>
+            )}
 
             <div className="flex-1 text-white">
               <div className="flex items-start justify-between mb-3">
                 <div>
                   <h1 className="text-3xl mb-2">{displayName || "—"}</h1>
+                  {displayEmail ? (
+                    <div className="mb-3 flex items-center gap-2 text-white/90">
+                      <Mail className="h-4 w-4 shrink-0" aria-hidden />
+                      <span className="text-sm sm:text-base break-all">
+                        {displayEmail}
+                      </span>
+                    </div>
+                  ) : null}
                   <div className="flex items-center gap-2 mb-3 min-h-[28px]">
                     {showRating ? (
                       <>
@@ -383,7 +400,7 @@ export function ProfilePage({
                             className="w-12 h-12 rounded-full bg-muted flex items-center justify-center text-xs font-semibold text-muted-foreground shrink-0"
                             aria-hidden
                           >
-                            {initialsFromName(review.reviewerName)}
+                            {initialsFromFullName(review.reviewerName)}
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between mb-2 gap-2">

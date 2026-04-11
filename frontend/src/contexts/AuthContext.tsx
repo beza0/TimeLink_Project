@@ -11,12 +11,23 @@ import type { PageType } from "../App";
 const AUTH_STORAGE_KEY = "timelink_auth";
 const LEGACY_USER_KEY = "timelink_user";
 
+/** localStorage ~5MB; base64 profil fotoğrafı diske yazılmaz (API tek kaynak). Bellekte tam URL kalır. */
+function userForLocalStorage(u: AuthUser): AuthUser {
+  const av = u.avatarUrl;
+  if (av != null && av.startsWith("data:")) {
+    return { ...u, avatarUrl: null };
+  }
+  return u;
+}
+
 export type AuthUser = {
   /** Backend user id (UUID string) when logged in via API */
   id?: string;
   name: string;
   email: string;
   role?: string;
+  /** Profil fotoğrafı (data URL veya URL), isteğe bağlı */
+  avatarUrl?: string | null;
 };
 
 type AuthContextValue = {
@@ -71,7 +82,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setToken(nextToken);
     localStorage.setItem(
       AUTH_STORAGE_KEY,
-      JSON.stringify({ user: next, token: nextToken }),
+      JSON.stringify({ user: userForLocalStorage(next), token: nextToken }),
     );
     localStorage.removeItem(LEGACY_USER_KEY);
   }, []);
@@ -97,7 +108,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (parsed?.token) {
             localStorage.setItem(
               AUTH_STORAGE_KEY,
-              JSON.stringify({ user: next, token: parsed.token }),
+              JSON.stringify({
+                user: userForLocalStorage(next),
+                token: parsed.token,
+              }),
             );
           }
         }

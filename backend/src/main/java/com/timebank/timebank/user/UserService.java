@@ -12,6 +12,7 @@ import com.timebank.timebank.user.dto.UserProfileResponse;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class UserService {
@@ -82,6 +83,7 @@ public class UserService {
         return toProfileResponse(user);
     }
 
+    @Transactional
     public UserProfileResponse updateMyProfile(String email, UpdateUserProfileRequest req) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new BadCredentialsException("Kullanıcı bulunamadı"));
@@ -94,8 +96,9 @@ public class UserService {
         user.setWebsite(blankToNull(req.getWebsite()));
         user.setLinkedin(blankToNull(req.getLinkedin()));
         user.setTwitter(blankToNull(req.getTwitter()));
+        user.setAvatarUrl(blankToNull(req.getAvatarUrl()));
 
-        User saved = userRepository.save(user);
+        User saved = userRepository.saveAndFlush(user);
 
         return toProfileResponse(saved);
     }
@@ -112,6 +115,7 @@ public class UserService {
                 user.getWebsite(),
                 user.getLinkedin(),
                 user.getTwitter(),
+                user.getAvatarUrl(),
                 user.getTimeCreditMinutes(),
                 user.getCreatedAt()
         );

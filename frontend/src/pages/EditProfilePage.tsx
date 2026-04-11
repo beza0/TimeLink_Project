@@ -5,13 +5,15 @@ import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Textarea } from "../components/ui/textarea";
 import { ImageWithFallback } from "../components/common/ImageWithFallback";
-import { Camera } from "lucide-react";
+import { Camera, Trash2 } from "lucide-react";
 import type { PageType } from "../App";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useAuth } from "../contexts/AuthContext";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { fetchMyProfile, updateMyProfile } from "../api/user";
 import { ApiError } from "../api/client";
+import { initialsFromFullName } from "../lib/initials";
+import { fileToResizedJpegDataUrl } from "../lib/resizeImageToDataUrl";
 
 const ONBOARDING_KEY = "timelink_profile_onboarding";
 
@@ -19,26 +21,25 @@ interface EditProfilePageProps {
   onNavigate?: (page: PageType) => void;
 }
 
-const PLACEHOLDER_AVATAR =
-  "https://images.unsplash.com/photo-1719257751404-1dea075324bd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080";
+/** Profil fotoğrafı ham dosya üst sınırı (yaygın standart: 2 MiB) */
+const MAX_AVATAR_FILE_BYTES = 2 * 1024 * 1024;
 
 export function EditProfilePage({ onNavigate }: EditProfilePageProps) {
   const { t } = useLanguage();
   const e = t.editProfile;
-  const { token, patchUser } = useAuth();
+  const { token, patchUser, user, logout } = useAuth();
+
+  const [fullName, setFullName] = useState(() => user?.name ?? "");
+  const [email, setEmail] = useState(() => user?.email ?? "");
 
   const [onboarding, setOnboarding] = useState(
     () =>
       typeof window !== "undefined" &&
       sessionStorage.getItem(ONBOARDING_KEY) === "1",
   );
-  const [loadError, setLoadError] = useState<string | null>(null);
-  const [saveError, setSaveError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
   const [bio, setBio] = useState("");
   const [location, setLocation] = useState("");
   const [phone, setPhone] = useState("");
@@ -46,15 +47,20 @@ export function EditProfilePage({ onNavigate }: EditProfilePageProps) {
   const [website, setWebsite] = useState("");
   const [linkedin, setLinkedin] = useState("");
   const [twitter, setTwitter] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [avatarError, setAvatarError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const load = useCallback(async () => {
-    if (!token) return;
+    if (!token) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
-    setLoadError(null);
     try {
       const p = await fetchMyProfile(token);
-      setFullName(p.fullName ?? "");
-      setEmail(p.email ?? "");
+      setFullName(p.fullName?.trim() || user?.name || "");
+      setEmail(p.email?.trim() || user?.email || "");
       setBio(p.bio ?? "");
       setLocation(p.location ?? "");
       setPhone(p.phone ?? "");
@@ -62,18 +68,20 @@ export function EditProfilePage({ onNavigate }: EditProfilePageProps) {
       setWebsite(p.website ?? "");
       setLinkedin(p.linkedin ?? "");
       setTwitter(p.twitter ?? "");
+      setAvatarUrl(p.avatarUrl ?? null);
+      setAvatarError(null);
     } catch (err) {
-      const msg =
-        err instanceof ApiError
-          ? err.message
-          : err instanceof Error
-            ? err.message
-            : e.errorLoadFailed;
-      setLoadError(msg);
+      if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
+        logout();
+        onNavigate?.("login");
+        return;
+      }
+      setFullName((n) => n.trim() || user?.name || "");
+      setEmail((em) => em.trim() || user?.email || "");
     } finally {
       setLoading(false);
     }
-  }, [token, e.errorLoadFailed]);
+  }, [token, user?.name, user?.email, logout, onNavigate]);
 
   useEffect(() => {
     void load();
@@ -89,10 +97,39 @@ export function EditProfilePage({ onNavigate }: EditProfilePageProps) {
     onNavigate?.("dashboard");
   };
 
+  const handlePickPhoto = () => {
+    setAvatarError(null);
+    fileInputRef.current?.click();
+  };
+
+  const handlePhotoSelected = async (ev: React.ChangeEvent<HTMLInputElement>) => {
+    const file = ev.target.files?.[0];
+    ev.target.value = "";
+    if (!file || !file.type.startsWith("image/")) {
+      if (file) setAvatarError(e.photoInvalidType);
+      return;
+    }
+    if (file.size > MAX_AVATAR_FILE_BYTES) {
+      setAvatarError(e.photoTooLarge);
+      return;
+    }
+    try {
+      const dataUrl = await fileToResizedJpegDataUrl(file, 512, 0.88);
+      setAvatarUrl(dataUrl);
+      setAvatarError(null);
+    } catch {
+      setAvatarError(e.photoInvalidType);
+    }
+  };
+
+  const handleRemovePhoto = () => {
+    setAvatarUrl(null);
+    setAvatarError(null);
+  };
+
   const handleSubmit = async (ev: React.FormEvent) => {
     ev.preventDefault();
     if (!token) return;
-    setSaveError(null);
     setSaving(true);
     try {
       const saved = await updateMyProfile(token, {
@@ -104,24 +141,24 @@ export function EditProfilePage({ onNavigate }: EditProfilePageProps) {
         website: website.trim() || null,
         linkedin: linkedin.trim() || null,
         twitter: twitter.trim() || null,
+        avatarUrl: avatarUrl,
       });
       patchUser({
         id: saved.id,
         name: saved.fullName,
         email: saved.email,
+        avatarUrl: saved.avatarUrl ?? null,
       });
       if (onboarding) {
         finishOnboarding();
       }
-      onNavigate?.("dashboard");
+      queueMicrotask(() => onNavigate?.("profile"));
     } catch (err) {
-      const msg =
-        err instanceof ApiError
-          ? err.message
-          : err instanceof Error
-            ? err.message
-            : e.errorSaveFailed;
-      setSaveError(msg);
+      if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
+        logout();
+        onNavigate?.("login");
+        return;
+      }
     } finally {
       setSaving(false);
     }
@@ -147,47 +184,60 @@ export function EditProfilePage({ onNavigate }: EditProfilePageProps) {
             </div>
           ) : null}
 
-          {loadError ? (
-            <p
-              className="mb-4 rounded-xl border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive"
-              role="alert"
-            >
-              {loadError}
-            </p>
-          ) : null}
-
           <Card className="rounded-2xl border-0 p-8 shadow-lg">
             {loading ? (
               <p className="text-muted-foreground">{t.common.loading}</p>
             ) : (
               <form className="space-y-6" onSubmit={handleSubmit}>
-                {saveError ? (
-                  <p
-                    className="rounded-xl border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive"
-                    role="alert"
-                  >
-                    {saveError}
-                  </p>
-                ) : null}
-
                 <div className="flex flex-col items-center mb-6">
-                  <div className="relative">
-                    <ImageWithFallback
-                      src={PLACEHOLDER_AVATAR}
-                      alt=""
-                      className="w-32 h-32 rounded-full object-cover"
-                    />
+                  {/* Görünmez: yalnızca kamera butonu .click() ile tetiklenir (native "Dosya Seç" satırı çıkmaz) */}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    className="hidden"
+                    tabIndex={-1}
+                    onChange={handlePhotoSelected}
+                  />
+                  <div className="relative h-32 w-32 shrink-0">
+                    {avatarUrl ? (
+                      <ImageWithFallback
+                        src={avatarUrl}
+                        alt=""
+                        className="h-32 w-32 rounded-full object-cover ring-2 ring-border"
+                      />
+                    ) : (
+                      <div
+                        className="flex h-32 w-32 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-3xl font-semibold text-white ring-2 ring-border"
+                        aria-hidden
+                      >
+                        {initialsFromFullName(fullName)}
+                      </div>
+                    )}
                     <button
                       type="button"
-                      className="absolute bottom-0 right-0 w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white hover:opacity-90 transition-opacity"
-                      aria-label={e.photoHint}
+                      className="absolute bottom-0 left-0 flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-md transition-opacity hover:opacity-90"
+                      aria-label={e.photoChangeAria}
+                      onClick={handlePickPhoto}
                     >
-                      <Camera className="w-5 h-5" />
+                      <Camera className="h-5 w-5" />
                     </button>
+                    {avatarUrl ? (
+                      <button
+                        type="button"
+                        className="absolute bottom-0 right-0 flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card text-destructive shadow-md transition-opacity hover:opacity-90"
+                        aria-label={e.photoRemove}
+                        onClick={handleRemovePhoto}
+                      >
+                        <Trash2 className="h-5 w-5" />
+                      </button>
+                    ) : null}
                   </div>
-                  <p className="mt-3 text-sm text-muted-foreground">
-                    {e.photoHint}
-                  </p>
+                  {avatarError ? (
+                    <p className="mt-2 text-sm text-destructive" role="alert">
+                      {avatarError}
+                    </p>
+                  ) : null}
                 </div>
 
                 <div>
@@ -207,10 +257,9 @@ export function EditProfilePage({ onNavigate }: EditProfilePageProps) {
                   <Input
                     id="email"
                     type="email"
-                    value={email}
+                    value={email || user?.email || ""}
                     readOnly
-                    disabled
-                    className="mt-2 opacity-80"
+                    className="mt-2 bg-muted/50"
                     autoComplete="email"
                   />
                 </div>

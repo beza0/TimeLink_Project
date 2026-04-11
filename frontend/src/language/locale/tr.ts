@@ -597,7 +597,13 @@ export const tr: Translation = {
     skipLater: "Atla · Daha sonra",
     errorLoadFailed: "Profil yüklenemedi.",
     errorSaveFailed: "Profil kaydedilemedi.",
-    photoHint: "Fotoğrafı güncellemek için kamera simgesine tıklayın",
+    photoHint:
+      "Profil fotoğrafı için kamera simgesine tıklayın (JPEG/PNG/WebP, en fazla 2 MB).",
+    /** Erişilebilirlik: sadece kamera butonu */
+    photoChangeAria: "Profil fotoğrafı yükle veya değiştir",
+    photoRemove: "Profil fotoğrafını kaldır",
+    photoTooLarge: "Dosya çok büyük. En fazla 2 MB olan bir görsel seçin.",
+    photoInvalidType: "Lütfen bir görsel dosyası seçin (JPEG, PNG, WebP veya GIF).",
     fullName: "Ad soyad *",
     email: "E-posta *",
     bio: "Biyografi",

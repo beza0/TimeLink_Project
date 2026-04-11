@@ -45,6 +45,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             Jws<Claims> parsed = jwtService.parse(token);
             String email = parsed.getPayload().getSubject();
             String role = parsed.getPayload().get("role", String.class);
+            if (role == null || role.isBlank()) {
+                role = "USER";
+            }
 
             var authToken = new UsernamePasswordAuthenticationToken(
                     email,

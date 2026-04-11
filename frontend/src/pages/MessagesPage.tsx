@@ -19,20 +19,14 @@ import {
   type ExchangeMessageDto,
   type ExchangeRequestDto,
 } from "../api/exchange";
-import { ApiError } from "../api/client";
+import { apiErrorDisplayMessage } from "../api/client";
+import { initialsFromFullName } from "../lib/initials";
 
 interface MessagesPageProps {
   onNavigate?: (page: PageType) => void;
 }
 
 const OPEN_EXCHANGE_KEY = "timelink_open_exchange";
-
-function initials(name: string): string {
-  const p = name.trim().split(/\s+/).filter(Boolean);
-  if (p.length === 0) return "?";
-  if (p.length === 1) return p[0].slice(0, 2).toUpperCase();
-  return (p[0][0] + p[p.length - 1][0]).toUpperCase();
-}
 
 type UiStatus =
   | "pending-incoming"
@@ -252,9 +246,7 @@ export function MessagesPage({ onNavigate }: MessagesPageProps) {
       await loadList();
       setSelectedId(id);
     } catch (e) {
-      const msg =
-        e instanceof ApiError ? e.message : m.actionError;
-      setSendError(msg);
+      setSendError(apiErrorDisplayMessage(e, m.actionError));
     }
   };
 
@@ -264,9 +256,7 @@ export function MessagesPage({ onNavigate }: MessagesPageProps) {
       await rejectExchangeRequest(token, id);
       await loadList();
     } catch (e) {
-      const msg =
-        e instanceof ApiError ? e.message : m.actionError;
-      setSendError(msg);
+      setSendError(apiErrorDisplayMessage(e, m.actionError));
     }
   };
 
@@ -279,9 +269,7 @@ export function MessagesPage({ onNavigate }: MessagesPageProps) {
       setMessageText("");
       await loadThread(selected);
     } catch (e) {
-      const msg =
-        e instanceof ApiError ? e.message : m.actionError;
-      setSendError(msg);
+      setSendError(apiErrorDisplayMessage(e, m.actionError));
       return;
     }
     try {
@@ -335,7 +323,7 @@ export function MessagesPage({ onNavigate }: MessagesPageProps) {
                           className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-semibold text-muted-foreground"
                           aria-hidden
                         >
-                          {initials(conv.otherName)}
+                          {initialsFromFullName(conv.otherName)}
                         </div>
 
                         <div className="min-w-0 flex-1">
@@ -401,7 +389,7 @@ export function MessagesPage({ onNavigate }: MessagesPageProps) {
                         className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-semibold text-muted-foreground"
                         aria-hidden
                       >
-                        {initials(selected.otherName)}
+                        {initialsFromFullName(selected.otherName)}
                       </div>
                       <div>
                         <h3 className="text-foreground">{selected.otherName}</h3>

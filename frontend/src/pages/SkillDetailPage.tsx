@@ -35,7 +35,8 @@ import { formatTemplate } from "../language";
 import { useEffect, useMemo, useState } from "react";
 import { fetchSkillById, type SkillDto } from "../api/skills";
 import { createExchangeRequest } from "../api/exchange";
-import { ApiError } from "../api/client";
+import { apiErrorDisplayMessage } from "../api/client";
+import { initialsFromFullName } from "../lib/initials";
 
 interface SkillDetailPageProps {
   onNavigate?: (page: PageType) => void;
@@ -52,13 +53,6 @@ function descriptionMeta(desc: string): string {
   const sep = "\n\n———\n";
   const i = desc.indexOf(sep);
   return i >= 0 ? desc.slice(i + sep.length).trim() : "";
-}
-
-function initials(name: string): string {
-  const p = name.trim().split(/\s+/).filter(Boolean);
-  if (p.length === 0) return "?";
-  if (p.length === 1) return p[0].slice(0, 2).toUpperCase();
-  return (p[0][0] + p[p.length - 1][0]).toUpperCase();
 }
 
 function tomorrowDateStr(): string {
@@ -179,13 +173,7 @@ export function SkillDetailPage({ onNavigate, skillId }: SkillDetailPageProps) {
       setBookMessage("");
       onNavigate?.("messages");
     } catch (err) {
-      const msg =
-        err instanceof ApiError
-          ? err.message
-          : err instanceof Error
-            ? err.message
-            : s.bookError;
-      setBookErr(msg);
+      setBookErr(apiErrorDisplayMessage(err, s.bookError));
     } finally {
       setBookSubmitting(false);
     }
@@ -365,7 +353,7 @@ export function SkillDetailPage({ onNavigate, skillId }: SkillDetailPageProps) {
               <Card className="sticky top-24 rounded-2xl border-0 p-6 shadow-lg">
                 <div className="mb-6 flex items-center gap-4 border-b border-border pb-6">
                   <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-muted text-lg font-semibold text-muted-foreground">
-                    {initials(skill.ownerName)}
+                    {initialsFromFullName(skill.ownerName)}
                   </div>
                   <div>
                     <p className="mb-1 text-sm text-muted-foreground">

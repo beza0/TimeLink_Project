@@ -20,7 +20,7 @@ import { useLanguage } from "../contexts/LanguageContext";
 import { useAuth } from "../contexts/AuthContext";
 import type { Messages } from "../language";
 import { createSkill } from "../api/skills";
-import { ApiError } from "../api/client";
+import { apiErrorDisplayMessage } from "../api/client";
 
 interface AddSkillPageProps {
   onNavigate?: (page: PageType) => void;
@@ -203,13 +203,7 @@ export function AddSkillPage({ onNavigate }: AddSkillPageProps) {
       });
       onNavigate?.("profile");
     } catch (err) {
-      const msg =
-        err instanceof ApiError
-          ? err.message
-          : err instanceof Error
-            ? err.message
-            : a.errorPublish;
-      setError(msg);
+      setError(apiErrorDisplayMessage(err, a.errorPublish));
     } finally {
       setLoading(false);
     }

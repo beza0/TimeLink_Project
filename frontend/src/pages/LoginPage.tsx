@@ -8,7 +8,7 @@ import { useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useLanguage } from "../contexts/LanguageContext";
 import { loginRequest } from "../api/auth";
-import { ApiError } from "../api/client";
+import { apiErrorDisplayMessage } from "../api/client";
 
 interface LoginPageProps {
   onNavigate?: (page: PageType) => void;
@@ -50,13 +50,7 @@ export function LoginPage({
       );
       onNavigate?.(returnTo);
     } catch (err) {
-      const msg =
-        err instanceof ApiError
-          ? err.message
-          : err instanceof Error
-            ? err.message
-            : a.errorFailed;
-      setError(msg);
+      setError(apiErrorDisplayMessage(err, a.errorFailed));
     } finally {
       setLoading(false);
     }

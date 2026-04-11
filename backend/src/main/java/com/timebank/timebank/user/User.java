@@ -68,6 +68,10 @@ public class User {
     @Column(length = 255)
     private String twitter;
 
+    /** Profil fotoğrafı: veri URL (data:image/...) veya harici HTTPS URL (PostgreSQL TEXT) */
+    @Column(name = "avatar_url", columnDefinition = "TEXT")
+    private String avatarUrl;
+
     // --- Lifecycle Hooks ---
 
     @PrePersist
@@ -133,6 +137,10 @@ public class User {
         return twitter;
     }
 
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
+
     // --- Setters (kontrollü bırakıyoruz) ---
 
     public void setFullName(String fullName) {
@@ -181,5 +189,9 @@ public class User {
 
     public void setTwitter(String twitter) {
         this.twitter = twitter;
+    }
+
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
     }
 }

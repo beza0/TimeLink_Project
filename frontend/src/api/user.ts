@@ -11,6 +11,8 @@ export type UserProfileDto = {
   website: string | null;
   linkedin: string | null;
   twitter: string | null;
+  /** data URL veya kısa görsel URL */
+  avatarUrl: string | null;
   timeCreditMinutes: number;
   createdAt?: string;
 };
@@ -24,6 +26,7 @@ export type UpdateUserProfileBody = {
   website?: string | null;
   linkedin?: string | null;
   twitter?: string | null;
+  avatarUrl?: string | null;
 };
 
 export function fetchMyProfile(token: string) {

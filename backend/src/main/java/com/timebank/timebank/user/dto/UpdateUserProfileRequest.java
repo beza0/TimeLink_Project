@@ -30,6 +30,10 @@ public class UpdateUserProfileRequest {
     @Size(max = 255, message = "Twitter en fazla 255 karakter olabilir")
     private String twitter;
 
+    /** Profil fotoğrafı (data URL veya kısa HTTPS URL); null = fotoğrafı kaldır */
+    @Size(max = 7_000_000, message = "Profil görseli çok büyük")
+    private String avatarUrl;
+
     public String getFullName() {
         return fullName;
     }
@@ -92,5 +96,13 @@ public class UpdateUserProfileRequest {
 
     public void setTwitter(String twitter) {
         this.twitter = twitter;
+    }
+
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
+
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
     }
 }
