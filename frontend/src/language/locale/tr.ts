@@ -457,6 +457,18 @@ export const tr: Translation = {
     bookTooSoon: "Oturum başlangıcı en az 1 saat sonrası olmalı.",
     bookDefaultMessage: "{{skill}} için yeni bir zaman önermek istiyorum.",
     bookFallbackMessage: "Yeni bir zaman önermek istiyorum.",
+    threadSessionLabel: "Oturum / talep",
+    viewMemberProfileTitle: "Profili görüntüle",
+  },
+  publicUserProfile: {
+    title: "Profil",
+    back: "Geri",
+    backToMessages: "Mesajlara dön",
+    notFound: "Kullanıcı bulunamadı.",
+    loadError: "Profil yüklenemedi.",
+    memberSince: "Üyelik",
+    noBio: "Henüz biyografi yok.",
+    averageLabel: "Ortalama puan",
   },
   howItWorks: {
     heroTitle: "TimeLink nasıl çalışır",

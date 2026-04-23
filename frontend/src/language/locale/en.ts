@@ -454,6 +454,18 @@ export const en = {
     bookTooSoon: "Session must start at least 1 hour from now.",
     bookDefaultMessage: "I'd like to propose a new slot for {{skill}}.",
     bookFallbackMessage: "I'd like to propose a new slot.",
+    threadSessionLabel: "Session / booking",
+    viewMemberProfileTitle: "View member profile",
+  },
+  publicUserProfile: {
+    title: "Profile",
+    back: "Back",
+    backToMessages: "Back to messages",
+    notFound: "User not found.",
+    loadError: "Could not load this profile.",
+    memberSince: "Member since",
+    noBio: "No bio yet.",
+    averageLabel: "Average rating",
   },
   howItWorks: {
     heroTitle: "How TimeLink Works",

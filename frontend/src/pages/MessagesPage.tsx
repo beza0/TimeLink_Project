@@ -27,6 +27,13 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../components/ui/select";
 import type { PageType } from "../App";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useAuth } from "../contexts/AuthContext";
@@ -51,6 +58,8 @@ import { initialsFromFullName } from "../lib/initials";
 
 interface MessagesPageProps {
   onNavigate?: (page: PageType) => void;
+  /** Sohbet başlığındaki isim/avatar: karşıdaki üyenin herkese açık profil sayfası */
+  onViewUserProfile?: (userId: string) => void;
 }
 
 const OPEN_EXCHANGE_KEY = "timelink_open_exchange";
@@ -100,13 +109,21 @@ type UiStatus =
   | "completed";
 
 type ConversationRow = {
-  id: string;
-  ex: ExchangeRequestDto;
+  otherUserId: string;
   otherName: string;
-  uiStatus: UiStatus;
+  /** Aynı kişiyle tüm oturum/talepler, en yeni en üstte */
+  exchanges: ExchangeRequestDto[];
+  listUiStatus: UiStatus;
   lastPreview: string;
   sortTime: number;
 };
+
+function getOtherUserId(
+  ex: ExchangeRequestDto,
+  myId: string | undefined,
+): string {
+  return sameUserId(ex.requesterId, myId) ? ex.ownerId : ex.requesterId;
+}
 
 function normalizeExchangeStatus(status: string | undefined): string {
   return String(status ?? "")
@@ -195,21 +212,37 @@ function mergeExchanges(
   const map = new Map<string, ExchangeRequestDto>();
   for (const e of sent) map.set(e.id, e);
   for (const e of received) map.set(e.id, e);
-  const rows: ConversationRow[] = [];
+  const byOther = new Map<string, ExchangeRequestDto[]>();
   for (const ex of map.values()) {
-    const otherName = sameUserId(ex.requesterId, myId)
-      ? ex.ownerName
-      : ex.requesterName;
+    const oid = getOtherUserId(ex, myId);
+    const list = byOther.get(oid) ?? [];
+    list.push(ex);
+    byOther.set(oid, list);
+  }
+  const rows: ConversationRow[] = [];
+  for (const [oid, exs] of byOther) {
+    exs.sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    );
+    const latest = exs[0];
+    const otherName = sameUserId(latest.requesterId, myId)
+      ? latest.ownerName
+      : latest.requesterName;
+    const sortTime = Math.max(
+      ...exs.map((e) => new Date(e.createdAt).getTime()),
+    );
+    const last =
+      latest.message.length > 100
+        ? `${latest.message.slice(0, 100)}…`
+        : latest.message;
     rows.push({
-      id: ex.id,
-      ex,
+      otherUserId: oid,
       otherName,
-      uiStatus: toUiStatus(ex, myId),
-      lastPreview:
-        ex.message.length > 100
-          ? `${ex.message.slice(0, 100)}…`
-          : ex.message,
-      sortTime: new Date(ex.createdAt).getTime(),
+      exchanges: exs,
+      listUiStatus: toUiStatus(latest, myId),
+      lastPreview: last,
+      sortTime,
     });
   }
   rows.sort((a, b) => b.sortTime - a.sortTime);
@@ -223,13 +256,19 @@ type ThreadLine = {
   timeLabel: string;
 };
 
-export function MessagesPage({ onNavigate }: MessagesPageProps) {
+export function MessagesPage({ onNavigate, onViewUserProfile }: MessagesPageProps) {
   const { t, locale } = useLanguage();
   const m = t.messagesPage;
   const { user, token } = useAuth();
   const [rows, setRows] = useState<ConversationRow[]>([]);
   const [loadingList, setLoadingList] = useState(false);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedOtherUserId, setSelectedOtherUserId] = useState<string | null>(
+    null,
+  );
+  const [activeExchangeId, setActiveExchangeId] = useState<string | null>(null);
+  const [openFromNavExchangeId, setOpenFromNavExchangeId] = useState<
+    string | null
+  >(null);
   const [messageText, setMessageText] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [threadLines, setThreadLines] = useState<ThreadLine[]>([]);
@@ -266,10 +305,10 @@ export function MessagesPage({ onNavigate }: MessagesPageProps) {
     [bookDate, locale],
   );
 
-  const loadList = useCallback(async () => {
+  const loadList = useCallback(async (): Promise<ConversationRow[]> => {
     if (!token) {
       setRows([]);
-      return;
+      return [];
     }
     setLoadingList(true);
     try {
@@ -277,9 +316,12 @@ export function MessagesPage({ onNavigate }: MessagesPageProps) {
         fetchSentExchangeRequests(token),
         fetchReceivedExchangeRequests(token),
       ]);
-      setRows(mergeExchanges(sent, received, user?.id));
+      const next = mergeExchanges(sent, received, user?.id);
+      setRows(next);
+      return next;
     } catch {
       setRows([]);
+      return [];
     } finally {
       setLoadingList(false);
     }
@@ -293,7 +335,7 @@ export function MessagesPage({ onNavigate }: MessagesPageProps) {
     try {
       const open = sessionStorage.getItem(OPEN_EXCHANGE_KEY);
       if (open) {
-        setSelectedId(open);
+        setOpenFromNavExchangeId(open);
         sessionStorage.removeItem(OPEN_EXCHANGE_KEY);
       }
     } catch {
@@ -301,10 +343,51 @@ export function MessagesPage({ onNavigate }: MessagesPageProps) {
     }
   }, []);
 
-  const selected = useMemo(
-    () => rows.find((r) => r.id === selectedId) ?? null,
-    [rows, selectedId],
-  );
+  useEffect(() => {
+    if (!openFromNavExchangeId || rows.length === 0) return;
+    for (const r of rows) {
+      if (r.exchanges.some((e) => e.id === openFromNavExchangeId)) {
+        setSelectedOtherUserId(r.otherUserId);
+        setActiveExchangeId(openFromNavExchangeId);
+        setOpenFromNavExchangeId(null);
+        return;
+      }
+    }
+    setOpenFromNavExchangeId(null);
+  }, [rows, openFromNavExchangeId]);
+
+  const selected = useMemo(() => {
+    if (!selectedOtherUserId) return null;
+    const row = rows.find((r) => r.otherUserId === selectedOtherUserId) ?? null;
+    if (!row) return null;
+    const ex =
+      row.exchanges.find((e) => e.id === activeExchangeId) ??
+      row.exchanges[0] ??
+      null;
+    if (!ex) return null;
+    return {
+      row,
+      ex,
+      otherName: row.otherName,
+      uiStatus: toUiStatus(ex, user?.id),
+    };
+  }, [rows, selectedOtherUserId, activeExchangeId, user?.id]);
+
+  useEffect(() => {
+    if (!selectedOtherUserId) return;
+    const row = rows.find((r) => r.otherUserId === selectedOtherUserId);
+    if (!row) {
+      setSelectedOtherUserId(null);
+      setActiveExchangeId(null);
+      return;
+    }
+    if (
+      !activeExchangeId ||
+      !row.exchanges.some((e) => e.id === activeExchangeId)
+    ) {
+      setActiveExchangeId(row.exchanges[0].id);
+    }
+  }, [rows, selectedOtherUserId, activeExchangeId]);
   const canCreateNewOffer =
     selected != null &&
     selected.uiStatus === "rejected" &&
@@ -319,16 +402,25 @@ export function MessagesPage({ onNavigate }: MessagesPageProps) {
       sameUserId(selected.ex.ownerId, user?.id),
   );
 
+  const openOtherProfile = useCallback(() => {
+    if (!selected) return;
+    const oid = getOtherUserId(selected.ex, user?.id);
+    if (user?.id && oid.toLowerCase() === user.id.toLowerCase()) {
+      onNavigate?.("profile");
+      return;
+    }
+    onViewUserProfile?.(oid);
+  }, [onNavigate, onViewUserProfile, selected, user?.id]);
+
   const loadThread = useCallback(
-    async (row: ConversationRow | null) => {
-      if (!token || !row) {
+    async (ex: ExchangeRequestDto | null) => {
+      if (!token || !ex) {
         setThreadLines([]);
         return;
       }
       setLoadingThread(true);
       setSendError(null);
       try {
-        const ex = row.ex;
         const initial: ThreadLine = {
           id: `initial-${ex.id}`,
           sender: isInitialMessageFromMe(ex, user?.id) ? "me" : "other",
@@ -376,25 +468,40 @@ export function MessagesPage({ onNavigate }: MessagesPageProps) {
   );
 
   useEffect(() => {
-    if (selected) void loadThread(selected);
+    if (selected) void loadThread(selected.ex);
   }, [selected, loadThread]);
 
   const filteredRows = rows.filter((r) => {
     const q = searchQuery.toLowerCase().trim();
     if (!q) return true;
-    return (
-      r.otherName.toLowerCase().includes(q) ||
-      r.ex.skillTitle.toLowerCase().includes(q) ||
-      r.lastPreview.toLowerCase().includes(q)
+    if (r.otherName.toLowerCase().includes(q)) return true;
+    if (r.lastPreview.toLowerCase().includes(q)) return true;
+    return r.exchanges.some(
+      (e) =>
+        e.skillTitle.toLowerCase().includes(q) ||
+        e.message.toLowerCase().includes(q),
     );
   });
+
+  const focusExchangeAfterList = useCallback(
+    (next: ConversationRow[], exchangeId: string) => {
+      const r = next.find((row) =>
+        row.exchanges.some((e) => e.id === exchangeId),
+      );
+      if (r) {
+        setSelectedOtherUserId(r.otherUserId);
+        setActiveExchangeId(exchangeId);
+      }
+    },
+    [],
+  );
 
   const handleAccept = async (id: string) => {
     if (!token) return;
     try {
       await acceptExchangeRequest(token, id);
-      await loadList();
-      setSelectedId(id);
+      const next = await loadList();
+      focusExchangeAfterList(next, id);
     } catch (e) {
       setSendError(apiErrorDisplayMessage(e, m.actionError));
     }
@@ -404,7 +511,8 @@ export function MessagesPage({ onNavigate }: MessagesPageProps) {
     if (!token) return;
     try {
       await rejectExchangeRequest(token, id);
-      await loadList();
+      const next = await loadList();
+      focusExchangeAfterList(next, id);
     } catch (e) {
       setSendError(apiErrorDisplayMessage(e, m.actionError));
     }
@@ -413,11 +521,12 @@ export function MessagesPage({ onNavigate }: MessagesPageProps) {
   const handleCancelExchange = async () => {
     if (!token || !selected) return;
     setSendError(null);
+    const exId = selected.ex.id;
     try {
-      await cancelExchangeRequest(token, selected.id);
+      await cancelExchangeRequest(token, exId);
       setCancelOpen(false);
-      await loadList();
-      setSelectedId(selected.id);
+      const next = await loadList();
+      focusExchangeAfterList(next, exId);
     } catch (e) {
       setSendError(apiErrorDisplayMessage(e, m.actionError));
     }
@@ -426,10 +535,11 @@ export function MessagesPage({ onNavigate }: MessagesPageProps) {
   const handleMarkComplete = async () => {
     if (!token || !selected) return;
     setSendError(null);
+    const exId = selected.ex.id;
     try {
-      await completeExchangeRequest(token, selected.id);
-      await loadList();
-      setSelectedId(selected.id);
+      await completeExchangeRequest(token, exId);
+      const next = await loadList();
+      focusExchangeAfterList(next, exId);
     } catch (e) {
       setSendError(apiErrorDisplayMessage(e, m.actionError));
     }
@@ -439,8 +549,8 @@ export function MessagesPage({ onNavigate }: MessagesPageProps) {
     if (!token || !selected) return;
     try {
       await rejectExchangeRequest(token, id);
-      await loadList();
-      setSelectedId(id);
+      const next = await loadList();
+      focusExchangeAfterList(next, id);
       setBookDate(tomorrowDateStr());
       setBookTime("10:00");
       setBookCalendarMonth(ymdToLocalDate(tomorrowDateStr()));
@@ -461,9 +571,9 @@ export function MessagesPage({ onNavigate }: MessagesPageProps) {
     if (!isMessageEnabledStatus(selected.ex.status)) return;
     setSendError(null);
     try {
-      await postExchangeMessage(token, selected.id, messageText.trim());
+      await postExchangeMessage(token, selected.ex.id, messageText.trim());
       setMessageText("");
-      await loadThread(selected);
+      await loadThread(selected.ex);
     } catch (e) {
       setSendError(apiErrorDisplayMessage(e, m.actionError));
       return;
@@ -507,7 +617,7 @@ export function MessagesPage({ onNavigate }: MessagesPageProps) {
         selected.uiStatus === "rejected" &&
         sameUserId(selected.ex.ownerId, user?.id);
       const created = shouldCreateCounterOffer
-        ? await createCounterOffer(token, selected.id, payload)
+        ? await createCounterOffer(token, selected.ex.id, payload)
         : await createExchangeRequest(token, selected.ex.skillId, payload);
       try {
         sessionStorage.setItem(OPEN_EXCHANGE_KEY, created.id);
@@ -515,13 +625,12 @@ export function MessagesPage({ onNavigate }: MessagesPageProps) {
         /* ignore */
       }
       setBookOpen(false);
-      await loadList();
+      const next = await loadList();
       if (shouldCreateCounterOffer) {
-        // Counter-offer gonderildikten sonra ayni kartta kalmasin;
-        // kullanici listeye donup guncel durumu gorur.
-        setSelectedId(null);
+        focusExchangeAfterList(next, created.id);
       } else {
-        setSelectedId(created.id);
+        setSelectedOtherUserId(getOtherUserId(created, user?.id));
+        setActiveExchangeId(created.id);
       }
     } catch (e) {
       setSendError(apiErrorDisplayMessage(e, m.actionError));
@@ -560,13 +669,20 @@ export function MessagesPage({ onNavigate }: MessagesPageProps) {
                     <p className="text-sm">{m.emptyList}</p>
                   </div>
                 ) : (
-                  filteredRows.map((conv) => (
+                  filteredRows.map((conv) => {
+                    const latest = conv.exchanges[0];
+                    return (
                     <button
-                      key={conv.id}
+                      key={conv.otherUserId}
                       type="button"
-                      onClick={() => setSelectedId(conv.id)}
+                      onClick={() => {
+                        setSelectedOtherUserId(conv.otherUserId);
+                        setActiveExchangeId(latest.id);
+                      }}
                       className={`w-full border-b border-border p-4 text-left transition-colors hover:bg-accent/50 ${
-                        selectedId === conv.id ? "bg-primary/10" : ""
+                        selectedOtherUserId === conv.otherUserId
+                          ? "bg-primary/10"
+                          : ""
                       }`}
                     >
                       <div className="flex items-start gap-3">
@@ -583,50 +699,54 @@ export function MessagesPage({ onNavigate }: MessagesPageProps) {
                               {conv.otherName}
                             </h3>
                             <span className="shrink-0 text-xs text-muted-foreground">
-                              {new Date(conv.ex.createdAt).toLocaleDateString(
+                              {new Date(latest.createdAt).toLocaleDateString(
                                 locale === "tr" ? "tr-TR" : "en-US",
                               )}
                             </span>
                           </div>
                           <p className="truncate text-xs text-muted-foreground">
-                            {conv.ex.skillTitle} · {conv.ex.bookedMinutes} min
+                            {latest.skillTitle} · {latest.bookedMinutes} min
+                            {conv.exchanges.length > 1
+                              ? ` · +${conv.exchanges.length - 1}`
+                              : ""}
                           </p>
                           <p className="mt-1 truncate text-sm text-muted-foreground">
                             {conv.lastPreview}
                           </p>
 
-                          {conv.uiStatus === "pending-incoming" && (
+                          {conv.listUiStatus === "pending-incoming" && (
                             <Badge variant="secondary" className="mt-2">
                               {m.pendingRequest}
                             </Badge>
                           )}
-                          {conv.uiStatus === "pending-outgoing" && (
+                          {conv.listUiStatus === "pending-outgoing" && (
                             <Badge variant="outline" className="mt-2">
                               {m.waitingApproval}
                             </Badge>
                           )}
-                          {conv.uiStatus === "rejected" && (
+                          {conv.listUiStatus === "rejected" && (
                             <Badge variant="destructive" className="mt-2">
                               {m.rejectedBadge}
                             </Badge>
                           )}
-                          {conv.uiStatus === "accepted" && (
+                          {conv.listUiStatus === "accepted" && (
                             <Badge className="mt-2 bg-emerald-600/90 text-white">
                               {m.acceptedBadge}
                             </Badge>
                           )}
-                          {conv.uiStatus === "cancelled" && (
+                          {conv.listUiStatus === "cancelled" && (
                             <Badge variant="secondary" className="mt-2">
                               {m.cancelledBadge}
                             </Badge>
                           )}
-                          {conv.uiStatus === "completed" && (
+                          {conv.listUiStatus === "completed" && (
                             <Badge className="mt-2">{m.completedBadge}</Badge>
                           )}
                         </div>
                       </div>
                     </button>
-                  ))
+                  );
+                  })
                 )}
               </div>
             </div>
@@ -645,19 +765,64 @@ export function MessagesPage({ onNavigate }: MessagesPageProps) {
               ) : (
                 <>
                   <div className="flex shrink-0 items-center justify-between border-b border-border p-4">
-                    <div className="flex items-center gap-3">
-                      <div
-                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-semibold text-muted-foreground"
-                        aria-hidden
+                    <div className="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+                      <button
+                        type="button"
+                        onClick={openOtherProfile}
+                        className="flex min-w-0 max-w-full items-center gap-3 rounded-lg p-0 text-left transition hover:bg-accent/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        title={m.viewMemberProfileTitle}
                       >
-                        {initialsFromFullName(selected.otherName)}
-                      </div>
-                      <div>
-                        <h3 className="text-foreground">{selected.otherName}</h3>
-                        <p className="text-xs text-muted-foreground">
-                          {selected.ex.skillTitle}
-                        </p>
-                      </div>
+                        <div
+                          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-semibold text-muted-foreground"
+                          aria-hidden
+                        >
+                          {initialsFromFullName(selected.otherName)}
+                        </div>
+                        <div className="min-w-0">
+                          <h3 className="truncate text-foreground">
+                            {selected.otherName}
+                          </h3>
+                          <p className="truncate text-xs text-muted-foreground">
+                            {selected.ex.skillTitle}
+                          </p>
+                        </div>
+                      </button>
+                      {selected.row.exchanges.length > 1 && activeExchangeId ? (
+                        <div className="w-full min-w-0 sm:max-w-sm sm:shrink-0">
+                          <Label
+                            className="mb-1 block text-xs text-muted-foreground"
+                            htmlFor="msg-active-exchange"
+                          >
+                            {m.threadSessionLabel}
+                          </Label>
+                          <Select
+                            value={activeExchangeId}
+                            onValueChange={setActiveExchangeId}
+                          >
+                            <SelectTrigger
+                              id="msg-active-exchange"
+                              className="w-full"
+                              size="sm"
+                            >
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent
+                              className="z-[1100]"
+                              position="popper"
+                            >
+                              {selected.row.exchanges.map((e) => (
+                                <SelectItem key={e.id} value={e.id}>
+                                  {e.skillTitle} · {e.bookedMinutes} min ·{" "}
+                                  {new Date(e.createdAt).toLocaleString(
+                                    locale === "tr" ? "tr-TR" : "en-US",
+                                    { dateStyle: "short" },
+                                  )}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      ) : null}
                     </div>
                   </div>
 
@@ -690,7 +855,7 @@ export function MessagesPage({ onNavigate }: MessagesPageProps) {
                         <Button
                           size="sm"
                           className="bg-gradient-to-r from-blue-500 to-purple-600 text-white"
-                          onClick={() => void handleAccept(selected.id)}
+                          onClick={() => void handleAccept(selected.ex.id)}
                         >
                           <Check className="mr-1 h-4 w-4" />
                           {m.accept}
@@ -698,7 +863,7 @@ export function MessagesPage({ onNavigate }: MessagesPageProps) {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => void handleReject(selected.id)}
+                          onClick={() => void handleReject(selected.ex.id)}
                         >
                           <X className="mr-1 h-4 w-4" />
                           {m.decline}
@@ -707,7 +872,7 @@ export function MessagesPage({ onNavigate }: MessagesPageProps) {
                           size="sm"
                           variant="outline"
                           onClick={() =>
-                            void handleRejectAndOfferOtherTime(selected.id)
+                            void handleRejectAndOfferOtherTime(selected.ex.id)
                           }
                         >
                           <CalendarPlus className="mr-1 h-4 w-4" />

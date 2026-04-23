@@ -165,6 +165,7 @@ export function pageRequiresAuth(page: PageType): boolean {
     "edit-profile",
     "settings",
     "messages",
+    "user-profile",
   ];
   return protectedPages.includes(page);
 }

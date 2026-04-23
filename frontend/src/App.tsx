@@ -8,6 +8,8 @@ import { AddSkillPage } from "./pages/AddSkillPage";
 import { PastSessionsPage } from "./pages/PastSessionsPage";
 import { EditProfilePage } from "./pages/EditProfilePage";
 import { MessagesPage } from "./pages/MessagesPage";
+import { PublicUserProfilePage } from "./pages/PublicUserProfilePage";
+import { PUBLIC_PROFILE_USER_ID_KEY } from "./api/user";
 import { SignUpPage } from "./pages/SignUpPage";
 import { LoginPage } from "./pages/LoginPage";
 import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
@@ -32,7 +34,8 @@ export type PageType =
   | "login"
   | "forgot-password"
   | "reset-password"
-  | "skill-detail";
+  | "skill-detail"
+  | "user-profile";
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState<PageType>("landing");
@@ -51,6 +54,15 @@ export default function App() {
   const openSkillDetail = (skillId: string) => {
     setSelectedSkillId(skillId);
     setCurrentPage("skill-detail");
+  };
+
+  const openPublicUserProfile = (userId: string) => {
+    try {
+      sessionStorage.setItem(PUBLIC_PROFILE_USER_ID_KEY, userId);
+    } catch {
+      /* ignore */
+    }
+    setCurrentPage("user-profile");
   };
 
   /** Explore / Browse: giriş yoksa book ile skill detayı yerine giriş sayfası */
@@ -106,7 +118,14 @@ export default function App() {
       case "settings":
         return <SettingsPage onNavigate={navigate} />;
       case "messages":
-        return <MessagesPage onNavigate={navigate} />;
+        return (
+          <MessagesPage
+            onNavigate={navigate}
+            onViewUserProfile={openPublicUserProfile}
+          />
+        );
+      case "user-profile":
+        return <PublicUserProfilePage onNavigate={navigate} />;
       case "signup":
         if (isAuthenticated) {
           return <DashboardPage onNavigate={navigate} />;

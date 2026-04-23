@@ -16,6 +16,7 @@ import com.timebank.timebank.user.dto.UpdateUserProfileRequest;
 import com.timebank.timebank.user.dto.UserDashboardResponse;
 import com.timebank.timebank.common.EmailVerificationRequiredException;
 import com.timebank.timebank.mail.RegistrationMailService;
+import com.timebank.timebank.user.dto.PublicUserProfileResponse;
 import com.timebank.timebank.user.dto.UserProfileResponse;
 import jakarta.persistence.EntityManager;
 import org.slf4j.Logger;
@@ -295,6 +296,28 @@ public class UserService {
                 .orElseThrow(() -> new BadCredentialsException("Kullanıcı bulunamadı"));
 
         return toProfileResponse(user);
+    }
+
+    @Transactional(readOnly = true)
+    public PublicUserProfileResponse getPublicProfile(UUID userId) {
+        User u = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("Kullanıcı bulunamadı"));
+        long totalReviews = reviewRepository.countByReviewedUserEmail(u.getEmail());
+        Double avg = reviewRepository.findAverageRatingByReviewedUserEmail(u.getEmail());
+        return new PublicUserProfileResponse(
+                u.getId(),
+                u.getFullName(),
+                u.getBio(),
+                u.getLocation(),
+                u.getLanguages(),
+                u.getWebsite(),
+                u.getLinkedin(),
+                u.getTwitter(),
+                u.getAvatarUrl(),
+                u.getCreatedAt(),
+                avg != null ? avg : 0.0,
+                totalReviews
+        );
     }
 
     @Transactional

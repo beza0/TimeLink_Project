@@ -6,6 +6,7 @@ import com.timebank.timebank.user.dto.RegisterRequest;
 import com.timebank.timebank.user.dto.ResendVerificationRequest;
 import com.timebank.timebank.user.dto.UpdateUserProfileRequest;
 import com.timebank.timebank.user.dto.UserDashboardResponse;
+import com.timebank.timebank.user.dto.PublicUserProfileResponse;
 import com.timebank.timebank.user.dto.UserProfileResponse;
 import com.timebank.timebank.user.dto.UserResponse;
 import com.timebank.timebank.mail.RegistrationMailService;
@@ -15,6 +16,8 @@ import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api")
@@ -87,6 +90,16 @@ public class UserController {
         return ResponseEntity.ok(
                 userService.getMyProfile(authentication.getName())
         );
+    }
+
+    /**
+     * Başka üyenin herkese açık profil özeti; giriş gerekir, e-posta/telefon dönmez.
+     */
+    @GetMapping("/users/{userId}/public")
+    public ResponseEntity<PublicUserProfileResponse> getPublicUserProfile(
+            @PathVariable UUID userId
+    ) {
+        return ResponseEntity.ok(userService.getPublicProfile(userId));
     }
 
     @PutMapping("/users/me/profile")
