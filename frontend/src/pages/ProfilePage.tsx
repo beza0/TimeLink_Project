@@ -69,7 +69,46 @@ function formatCreditMinutes(minutes: number, locale: string): string {
 function skillCardDescriptionPreview(description: string): string {
   const sep = "\n\n———\n";
   const idx = description.indexOf(sep);
-  return (idx >= 0 ? description.slice(0, idx) : description).trim();
+  if (idx >= 0) {
+    return description.slice(0, idx).trim();
+  }
+
+  // Fallback for legacy rows where metadata was saved inline without separator.
+  const filtered = description
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .filter((line) => {
+      const lower = line.toLowerCase();
+      return !(
+        lower.startsWith("session type") ||
+        lower.startsWith("oturum türü") ||
+        lower.startsWith("location") ||
+        lower.startsWith("konum") ||
+        lower.startsWith("available days") ||
+        lower.startsWith("müsait günler") ||
+        lower.startsWith("available from") ||
+        lower.startsWith("başlangıç") ||
+        lower.startsWith("available until") ||
+        lower.startsWith("bitiş") ||
+        lower.startsWith("tags") ||
+        lower.startsWith("etiketler")
+      );
+    });
+
+  return filtered.join(" ").trim();
+}
+
+function fallbackSessionTypeFromDescription(description: string): string | null {
+  const m = description.match(
+    /(?:Session Type \*|Oturum türü \*)\s*:\s*([^\n]+)/i,
+  );
+  return m?.[1]?.trim() || null;
+}
+
+function fallbackLocationFromDescription(description: string): string | null {
+  const m = description.match(/(?:Location|Konum)\s*:\s*([^\n]+)/i);
+  return m?.[1]?.trim() || null;
 }
 
 function formatSessionTime(
@@ -515,6 +554,19 @@ export function ProfilePage({
                       const preview = skillCardDescriptionPreview(
                         skill.description,
                       );
+                      const sessionTypeText =
+                        skill.sessionTypes && skill.sessionTypes.length > 0
+                          ? skill.sessionTypes
+                              .map((v) =>
+                                v === "in-person"
+                                  ? t.addSkill.inPerson
+                                  : t.addSkill.online,
+                              )
+                              .join(", ")
+                          : fallbackSessionTypeFromDescription(skill.description);
+                      const locationText =
+                        (skill.inPersonLocation || "").trim() ||
+                        fallbackLocationFromDescription(skill.description);
                       const availability = formatSkillAvailability(
                         skill,
                         dayLabels,
@@ -555,6 +607,16 @@ export function ProfilePage({
                                 {levelText ? (
                                   <Badge variant="secondary">
                                     {levelText}
+                                  </Badge>
+                                ) : null}
+                                {sessionTypeText ? (
+                                  <Badge variant="outline">
+                                    {sessionTypeText}
+                                  </Badge>
+                                ) : null}
+                                {locationText ? (
+                                  <Badge variant="outline">
+                                    {locationText}
                                   </Badge>
                                 ) : null}
                                 {availability ? (

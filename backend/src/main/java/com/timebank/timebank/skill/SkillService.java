@@ -35,7 +35,7 @@ public class SkillService {
     }
 
     public SkillResponse createSkill(CreateSkillRequest req, String userEmail) {
-        User owner = userRepository.findByEmail(userEmail)
+        User owner = userRepository.findByEmailIgnoreCase(userEmail)
                 .orElseThrow(() -> new BadCredentialsException("Kullanıcı bulunamadı"));
 
         Skill skill = new Skill();
@@ -84,10 +84,7 @@ public class SkillService {
     }
 
     public List<SkillResponse> getMySkills(String userEmail) {
-        User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new BadCredentialsException("Kullanıcı bulunamadı"));
-
-        return skillRepository.findByOwnerId(user.getId())
+        return skillRepository.findByOwnerEmailIgnoreCase(userEmail)
                 .stream()
                 .map(this::mapToResponse)
                 .toList();

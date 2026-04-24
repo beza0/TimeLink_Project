@@ -9,9 +9,9 @@ import { useAuth } from "../contexts/AuthContext";
 import type { PageType } from "../App";
 import { PATHS } from "../navigation/paths";
 import {
+  deleteSelectedNotifications,
   fetchNotifications,
   isNotificationUnread,
-  markNotificationRead,
   type NotificationDto,
 } from "../api/notifications";
 import { apiErrorDisplayMessage } from "../api/client";
@@ -75,25 +75,25 @@ export function NotificationsPage({
     setSelected(new Set(visible.map((n) => n.id)));
   };
 
-  const markSelectedRead = async () => {
+  const deleteSelected = async () => {
     if (!token || selected.size === 0) return;
-    for (const id of selected) {
-      try {
-        await markNotificationRead(token, id);
-      } catch {
-        /* devam */
-      }
+    try {
+      await deleteSelectedNotifications(token, Array.from(selected));
+      setSelected(new Set());
+      void load();
+    } catch (e) {
+      setError(apiErrorDisplayMessage(e, t.common.loading));
     }
-    setSelected(new Set());
-    void load();
   };
 
   return (
     <PageLayout onNavigate={onNavigate}>
-      <div className="mx-auto max-w-2xl px-4 pb-12 pt-20 sm:px-6">
+      <div className="mx-auto w-full max-w-6xl px-4 pb-12 pt-20 sm:px-6 lg:px-8">
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <h1 className="text-2xl font-bold text-foreground">{p.title}</h1>
-          <div className="flex flex-wrap items-center gap-2">
+          <h1 className="whitespace-nowrap text-2xl font-bold text-foreground">
+            {p.title}
+          </h1>
+          <div className="flex w-full flex-wrap items-center justify-end gap-2 sm:w-auto">
             <div className="flex items-center gap-2">
               <Checkbox
                 id="unread-only"
@@ -116,10 +116,11 @@ export function NotificationsPage({
             <Button
               type="button"
               size="sm"
-              onClick={() => void markSelectedRead()}
+              variant="destructive"
+              onClick={() => void deleteSelected()}
               disabled={selected.size === 0}
             >
-              {p.markSelectedRead} ({selected.size})
+              {p.deleteSelected} ({selected.size})
             </Button>
           </div>
         </div>
@@ -135,7 +136,7 @@ export function NotificationsPage({
               return (
                 <li
                   key={n.id}
-                  className={`flex gap-3 rounded-lg border p-3 ${
+                  className={`flex items-center gap-3 rounded-lg border p-3 ${
                     u ? "border-l-4 border-l-primary bg-primary/5" : "bg-muted/30"
                   }`}
                 >
@@ -143,26 +144,31 @@ export function NotificationsPage({
                     checked={selected.has(n.id)}
                     onCheckedChange={() => toggleSelect(n.id)}
                     aria-label="select"
+                    className="self-center"
                   />
                   <div className="min-w-0 flex-1">
-                    <p className="font-medium text-foreground">{n.title}</p>
-                    <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                      {n.body}
-                    </p>
-                    {n.exchangeRequestId ? (
-                      <Link
-                        to={`${PATHS.messages}?open=${encodeURIComponent(n.exchangeRequestId!)}`}
-                        className="mt-2 inline-block text-sm text-primary"
-                      >
-                        {t.nav.goToMessages} →
-                      </Link>
-                    ) : null}
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {new Date(n.createdAt).toLocaleString(
-                        locale === "tr" ? "tr-TR" : "en-US",
-                        { dateStyle: "short", timeStyle: "short" },
-                      )}
-                    </p>
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium text-foreground">{n.title}</p>
+                        <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                          {n.body}
+                        </p>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          {new Date(n.createdAt).toLocaleString(
+                            locale === "tr" ? "tr-TR" : "en-US",
+                            { dateStyle: "short", timeStyle: "short" },
+                          )}
+                        </p>
+                      </div>
+                      {n.exchangeRequestId ? (
+                        <Link
+                          to={`${PATHS.messages}?open=${encodeURIComponent(n.exchangeRequestId!)}`}
+                          className="shrink-0 self-center text-sm font-medium text-primary"
+                        >
+                          {t.nav.goToMessages} →
+                        </Link>
+                      ) : null}
+                    </div>
                   </div>
                 </li>
               );

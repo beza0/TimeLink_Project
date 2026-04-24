@@ -222,29 +222,22 @@ export function Navbar({ onNavigate }: NavbarProps) {
                     side="bottom"
                     sideOffset={8}
                     collisionPadding={20}
-                    className="nav-notification-popover overflow-hidden rounded-2xl border-0 bg-white p-0 shadow-2xl dark:border dark:border-border dark:bg-card"
+                    className="nav-notification-popover overflow-hidden rounded-2xl border border-border bg-popover p-0 text-popover-foreground shadow-2xl"
                   >
-                    <div className="flex flex-col gap-2 border-b border-gray-200 p-4 sm:flex-row sm:items-center sm:justify-between dark:border-border">
-                      <h2 className="text-lg font-semibold text-gray-900 dark:text-foreground">
+                    <div className="flex flex-col gap-3 border-b border-border p-4 sm:flex-row sm:items-center sm:justify-between">
+                      <h2 className="text-lg font-semibold text-foreground">
                         {t.nav.notifications}
                       </h2>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <label className="flex cursor-pointer items-center gap-1.5 text-xs text-gray-600 dark:text-muted-foreground">
+                      <div className="flex w-full flex-wrap items-center justify-end gap-2 sm:w-auto">
+                        <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-purple-200 bg-purple-50 px-3 py-1.5 text-xs font-medium text-purple-700 transition-colors hover:bg-purple-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700">
                           <input
                             type="checkbox"
                             checked={notifUnreadOnly}
                             onChange={() => setNotifUnreadOnly((u) => !u)}
-                            className="rounded border-border"
+                            className="h-3.5 w-3.5 rounded border-purple-300 text-purple-600 focus:ring-purple-500 dark:border-zinc-500 dark:bg-zinc-900"
                           />
                           {t.notificationsPage.unreadOnly}
                         </label>
-                        <Link
-                          to={notifUnreadOnly ? `${PATHS.notifications}?unread=1` : PATHS.notifications}
-                          className="text-sm font-medium text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300"
-                          onClick={() => setNotifOpen(false)}
-                        >
-                          {t.nav.allNotifications}
-                        </Link>
                         <button
                         type="button"
                         className="text-sm font-medium text-purple-600 hover:text-purple-700 disabled:cursor-not-allowed disabled:opacity-40 dark:text-purple-400 dark:hover:text-purple-300"
@@ -262,7 +255,7 @@ export function Navbar({ onNavigate }: NavbarProps) {
                       </button>
                       </div>
                     </div>
-                    <div className="nav-notification-scroll max-h-[min(500px,calc(100dvh-8rem))]">
+                    <div className="nav-notification-scroll max-h-[min(440px,calc(100dvh-10rem))]">
                       {notifications.length === 0 ? (
                         <p className="p-4 text-sm text-gray-500 dark:text-muted-foreground">
                           {t.nav.noNotifications}
@@ -277,10 +270,10 @@ export function Navbar({ onNavigate }: NavbarProps) {
                           return (
                             <div
                               key={n.id}
-                              className={`border-b border-gray-100 p-4 transition-colors last:border-b-0 dark:border-border ${
+                              className={`border-b border-border p-4 transition-colors last:border-b-0 ${
                                 unread
-                                  ? "border-l-[5px] border-l-purple-600 bg-white dark:border-l-purple-500 dark:bg-card"
-                                  : "border-l-[5px] border-l-transparent bg-gray-50/90 dark:bg-muted/25"
+                                  ? "border-l-[5px] border-l-purple-600 bg-background"
+                                  : "border-l-[5px] border-l-transparent bg-muted/30"
                               }`}
                             >
                               <div
@@ -415,6 +408,15 @@ export function Navbar({ onNavigate }: NavbarProps) {
                           );
                         })
                       )}
+                    </div>
+                    <div className="border-t border-border bg-muted/20 p-3">
+                      <Link
+                        to={notifUnreadOnly ? `${PATHS.notifications}?unread=1` : PATHS.notifications}
+                        className="block w-full rounded-lg px-3 py-2 text-center text-sm font-medium text-purple-600 transition-colors hover:bg-purple-100 hover:text-purple-700 dark:text-purple-400 dark:hover:bg-purple-500/20 dark:hover:text-purple-300"
+                        onClick={() => setNotifOpen(false)}
+                      >
+                        {t.nav.allNotifications}
+                      </Link>
                     </div>
                   </PopoverContent>
                 </Popover>

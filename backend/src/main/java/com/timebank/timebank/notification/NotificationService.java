@@ -123,6 +123,21 @@ public class NotificationService {
         userNotificationRepository.save(new UserNotification(requester, title, body, ex));
     }
 
+    @Transactional
+    public void sendSessionStartPrompt(ExchangeRequest ex) {
+        User owner = ex.getSkill().getOwner();
+        User requester = ex.getRequester();
+        String when = formatWhen(ex.getScheduledStartAt());
+        String title = "Oturum başladı mı?";
+        String body = String.format(
+                "\"%s\" oturumu için başlangıç zamanı geldi (%s). Lütfen sohbette \"başladı\" onayı verin.",
+                ex.getSkill().getTitle(),
+                when
+        );
+        userNotificationRepository.save(new UserNotification(owner, title, body, ex));
+        userNotificationRepository.save(new UserNotification(requester, title, body, ex));
+    }
+
     private static String formatWhen(Instant scheduledStartAt) {
         if (scheduledStartAt == null) {
             return "(tarih seçilmedi)";
@@ -174,6 +189,24 @@ public class NotificationService {
         }
         n.setReadAt(null);
         userNotificationRepository.save(n);
+    }
+
+    @Transactional
+    public void deleteSelected(String email, List<UUID> notificationIds) {
+        String e = normalizeEmail(email);
+        if (e.isEmpty() || notificationIds == null || notificationIds.isEmpty()) {
+            return;
+        }
+        List<UserNotification> toDelete = userNotificationRepository.findAllById(notificationIds);
+        if (toDelete.isEmpty()) {
+            return;
+        }
+        for (UserNotification n : toDelete) {
+            if (n.getUser() == null || !n.getUser().getEmail().equalsIgnoreCase(e)) {
+                throw new IllegalArgumentException("Bu bildirime erişim yok");
+            }
+        }
+        userNotificationRepository.deleteAllInBatch(toDelete);
     }
 
     /**

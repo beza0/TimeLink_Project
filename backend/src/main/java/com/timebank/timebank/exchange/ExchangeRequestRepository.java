@@ -33,6 +33,13 @@ public interface ExchangeRequestRepository extends JpaRepository<ExchangeRequest
             Instant end
     );
 
+    @EntityGraph(attributePaths = {"skill", "skill.owner", "requester"})
+    List<ExchangeRequest> findByStatusAndStartedPromptSentFalseAndScheduledStartAtBetween(
+            ExchangeRequestStatus status,
+            Instant start,
+            Instant end
+    );
+
     /** Aynı kullanıcının kesişen kabul edilmiş oturumlarını ararken. */
     @EntityGraph(attributePaths = {"skill", "skill.owner", "requester"})
     @Query("SELECT e FROM ExchangeRequest e JOIN e.skill s " +

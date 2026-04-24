@@ -24,26 +24,19 @@ import {
   MessageCircle,
   CalendarPlus,
   CalendarIcon,
-  CheckCircle2,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../components/ui/select";
 import type { PageType } from "../App";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useAuth } from "../contexts/AuthContext";
 import { formatTemplate } from "../language";
 import { enUS, tr as trLocale } from "react-day-picker/locale";
 import {
+  acknowledgeOwnerAttendance,
+  acknowledgeRequesterAttendance,
   acceptExchangeRequest,
   cancelExchangeRequest,
-  completeExchangeRequest,
   createCounterOffer,
   fetchExchangeMessages,
   fetchReceivedExchangeRequests,
@@ -51,8 +44,6 @@ import {
   postExchangeMessage,
   rejectExchangeRequest,
   createExchangeRequest,
-  updateExchangeSessionMeeting,
-  acknowledgeRequesterAttendance,
   type ExchangeMessageDto,
   type ExchangeRequestDto,
 } from "../api/exchange";
@@ -90,13 +81,6 @@ function dateToYmd(d: Date): string {
 function ymdToLocalDate(ymd: string): Date {
   const [y, m, d] = ymd.split("-").map(Number);
   return new Date(y, m - 1, d, 12, 0, 0, 0);
-}
-
-function meetingHref(url: string): string {
-  const t = url.trim();
-  if (!t) return t;
-  if (t.startsWith("http://") || t.startsWith("https://")) return t;
-  return `https://${t}`;
 }
 
 function formatScheduledAt(
@@ -261,9 +245,15 @@ function mergeExchanges(
 
 type ThreadLine = {
   id: string;
+  kind: "message" | "offer-card";
   sender: "me" | "other";
-  text: string;
+  text?: string;
+  offerStatus?: UiStatus;
+  offerSkillTitle?: string;
+  offerScheduledAt?: string | null;
+  offerMinutes?: number;
   timeLabel: string;
+  sortMs: number;
 };
 
 export function MessagesPage({ onNavigate, onViewUserProfile }: MessagesPageProps) {
@@ -272,7 +262,6 @@ export function MessagesPage({ onNavigate, onViewUserProfile }: MessagesPageProp
   const { user, token } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const [rows, setRows] = useState<ConversationRow[]>([]);
-  const [meetingDraft, setMeetingDraft] = useState("");
   const [loadingList, setLoadingList] = useState(false);
   const [selectedOtherUserId, setSelectedOtherUserId] = useState<string | null>(
     null,
@@ -394,14 +383,6 @@ export function MessagesPage({ onNavigate, onViewUserProfile }: MessagesPageProp
   }, [rows, selectedOtherUserId, activeExchangeId, user?.id]);
 
   useEffect(() => {
-    if (!selected) {
-      setMeetingDraft("");
-      return;
-    }
-    setMeetingDraft(selected.ex.sessionMeetingUrl?.trim() ?? "");
-  }, [selected, selected?.ex.id, selected?.ex.sessionMeetingUrl]);
-
-  useEffect(() => {
     if (!selectedOtherUserId) return;
     const row = rows.find((r) => r.otherUserId === selectedOtherUserId);
     if (!row) {
@@ -416,20 +397,15 @@ export function MessagesPage({ onNavigate, onViewUserProfile }: MessagesPageProp
       setActiveExchangeId(row.exchanges[0].id);
     }
   }, [rows, selectedOtherUserId, activeExchangeId]);
-  const canCreateNewOffer =
-    selected != null &&
-    selected.uiStatus === "rejected" &&
-    sameUserId(selected.ex.requesterId, user?.id);
-
   const canCancelSelected = Boolean(
     selected && canCancelExchange(selected.ex, user?.id),
   );
-  const canMarkCompleteSelected = Boolean(
-    selected &&
-      selected.uiStatus === "accepted" &&
-      sameUserId(selected.ex.ownerId, user?.id),
+  const isSelectedOwnerSide = Boolean(
+    selected && sameUserId(selected.ex.ownerId, user?.id),
   );
-
+  const isSelectedRequesterSide = Boolean(
+    selected && sameUserId(selected.ex.requesterId, user?.id),
+  );
   const openOtherProfile = useCallback(() => {
     if (!selected) return;
     const oid = getOtherUserId(selected.ex, user?.id);
@@ -441,51 +417,79 @@ export function MessagesPage({ onNavigate, onViewUserProfile }: MessagesPageProp
   }, [onNavigate, onViewUserProfile, selected, user?.id]);
 
   const loadThread = useCallback(
-    async (ex: ExchangeRequestDto | null) => {
-      if (!token || !ex) {
+    async (row: ConversationRow | null) => {
+      if (!token || !row) {
         setThreadLines([]);
         return;
       }
       setLoadingThread(true);
       setSendError(null);
       try {
-        const initial: ThreadLine = {
-          id: `initial-${ex.id}`,
-          sender: isInitialMessageFromMe(ex, user?.id) ? "me" : "other",
-          text: ex.message,
-          timeLabel: new Date(ex.createdAt).toLocaleString(
-            locale === "tr" ? "tr-TR" : "en-US",
-            { dateStyle: "short", timeStyle: "short" },
-          ),
-        };
+        const allLines: ThreadLine[] = [];
+        const exchangesChrono = [...row.exchanges].sort(
+          (a, b) =>
+            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+        );
 
-        if (isPendingExchangeStatus(ex.status)) {
-          setThreadLines([initial]);
-          return;
+        for (const ex of exchangesChrono) {
+          const createdMs = new Date(ex.createdAt).getTime();
+          allLines.push({
+            id: `initial-${ex.id}`,
+            kind: "message",
+            sender: isInitialMessageFromMe(ex, user?.id) ? "me" : "other",
+            text: ex.message,
+            timeLabel: new Date(ex.createdAt).toLocaleString(
+              locale === "tr" ? "tr-TR" : "en-US",
+              { dateStyle: "short", timeStyle: "short" },
+            ),
+            sortMs: createdMs,
+          });
+
+          const status = toUiStatus(ex, user?.id);
+          if (status === "rejected" || status === "pending-incoming" || status === "pending-outgoing") {
+            allLines.push({
+              id: `offer-${ex.id}`,
+              kind: "offer-card",
+              sender: "other",
+              offerStatus: status,
+              offerSkillTitle: ex.skillTitle,
+              offerScheduledAt: ex.scheduledStartAt,
+              offerMinutes: ex.bookedMinutes,
+              timeLabel: new Date(ex.createdAt).toLocaleString(
+                locale === "tr" ? "tr-TR" : "en-US",
+                { dateStyle: "short", timeStyle: "short" },
+              ),
+              sortMs: createdMs + 1,
+            });
+          }
+
+          if (!isMessageEnabledStatus(ex.status)) {
+            continue;
+          }
+          try {
+            const apiMsgs = await fetchExchangeMessages(token, ex.id);
+            const apiLines: ThreadLine[] = apiMsgs.map((msg: ExchangeMessageDto) => {
+              const ms = new Date(msg.createdAt).getTime();
+              return {
+                id: msg.id,
+                kind: "message",
+                sender: sameUserId(msg.senderId, user?.id) ? "me" : "other",
+                text: msg.body,
+                timeLabel: new Date(msg.createdAt).toLocaleString(
+                  locale === "tr" ? "tr-TR" : "en-US",
+                  { dateStyle: "short", timeStyle: "short" },
+                ),
+                sortMs: ms,
+              };
+            });
+            allLines.push(...apiLines);
+          } catch {
+            // Keep timeline visible even if one exchange's messages cannot be fetched.
+          }
         }
 
-        const apiMsgs = await fetchExchangeMessages(token, ex.id);
-        const apiLines: ThreadLine[] = apiMsgs.map((msg: ExchangeMessageDto) => ({
-          id: msg.id,
-          sender: sameUserId(msg.senderId, user?.id) ? "me" : "other",
-          text: msg.body,
-          timeLabel: new Date(msg.createdAt).toLocaleString(
-            locale === "tr" ? "tr-TR" : "en-US",
-            { dateStyle: "short", timeStyle: "short" },
-          ),
-        }));
-
-        const sorted = [initial, ...apiLines].sort((a, b) => {
-          const t = (line: ThreadLine) => {
-            if (line.id.startsWith("initial-")) {
-              return new Date(ex.createdAt).getTime();
-            }
-            const found = apiMsgs.find((x) => x.id === line.id);
-            return found ? new Date(found.createdAt).getTime() : 0;
-          };
-          return t(a) - t(b);
-        });
-        setThreadLines(sorted);
+        allLines.sort((a, b) => a.sortMs - b.sortMs);
+        setThreadLines(allLines);
       } catch {
         setThreadLines([]);
       } finally {
@@ -496,7 +500,7 @@ export function MessagesPage({ onNavigate, onViewUserProfile }: MessagesPageProp
   );
 
   useEffect(() => {
-    if (selected) void loadThread(selected.ex);
+    if (selected) void loadThread(selected.row);
   }, [selected, loadThread]);
 
   const filteredRows = rows.filter((r) => {
@@ -560,12 +564,12 @@ export function MessagesPage({ onNavigate, onViewUserProfile }: MessagesPageProp
     }
   };
 
-  const handleMarkComplete = async () => {
+  const handleRequesterStarted = async () => {
     if (!token || !selected) return;
     setSendError(null);
     const exId = selected.ex.id;
     try {
-      await completeExchangeRequest(token, exId);
+      await acknowledgeRequesterAttendance(token, exId);
       const next = await loadList();
       focusExchangeAfterList(next, exId);
     } catch (e) {
@@ -573,29 +577,14 @@ export function MessagesPage({ onNavigate, onViewUserProfile }: MessagesPageProp
     }
   };
 
-  const handleSaveMeeting = async () => {
+  const handleOwnerStarted = async () => {
     if (!token || !selected) return;
     setSendError(null);
+    const exId = selected.ex.id;
     try {
-      await updateExchangeSessionMeeting(
-        token,
-        selected.ex.id,
-        meetingDraft,
-      );
+      await acknowledgeOwnerAttendance(token, exId);
       const next = await loadList();
-      focusExchangeAfterList(next, selected.ex.id);
-    } catch (e) {
-      setSendError(apiErrorDisplayMessage(e, m.actionError));
-    }
-  };
-
-  const handleAckAttendance = async () => {
-    if (!token || !selected) return;
-    setSendError(null);
-    try {
-      await acknowledgeRequesterAttendance(token, selected.ex.id);
-      const next = await loadList();
-      focusExchangeAfterList(next, selected.ex.id);
+      focusExchangeAfterList(next, exId);
     } catch (e) {
       setSendError(apiErrorDisplayMessage(e, m.actionError));
     }
@@ -629,7 +618,7 @@ export function MessagesPage({ onNavigate, onViewUserProfile }: MessagesPageProp
     try {
       await postExchangeMessage(token, selected.ex.id, messageText.trim());
       setMessageText("");
-      await loadThread(selected.ex);
+      await loadThread(selected.row);
     } catch (e) {
       setSendError(apiErrorDisplayMessage(e, m.actionError));
       return;
@@ -639,18 +628,6 @@ export function MessagesPage({ onNavigate, onViewUserProfile }: MessagesPageProp
     } catch {
       /* Konuşma listesi yenilenemese bile mesaj gönderildi; sessizce geç */
     }
-  };
-
-  const openBookModal = () => {
-    if (!selected) return;
-    setBookDate(tomorrowDateStr());
-    setBookTime("10:00");
-    setBookCalendarMonth(ymdToLocalDate(tomorrowDateStr()));
-    setBookMessage(
-      formatTemplate(m.bookDefaultMessage, { skill: selected.ex.skillTitle }),
-    );
-    setBookOpen(true);
-    setSendError(null);
   };
 
   const handleCreateBooking = async () => {
@@ -843,42 +820,6 @@ export function MessagesPage({ onNavigate, onViewUserProfile }: MessagesPageProp
                           </p>
                         </div>
                       </button>
-                      {selected.row.exchanges.length > 1 && activeExchangeId ? (
-                        <div className="w-full min-w-0 sm:max-w-sm sm:shrink-0">
-                          <Label
-                            className="mb-1 block text-xs text-muted-foreground"
-                            htmlFor="msg-active-exchange"
-                          >
-                            {m.threadSessionLabel}
-                          </Label>
-                          <Select
-                            value={activeExchangeId}
-                            onValueChange={setActiveExchangeId}
-                          >
-                            <SelectTrigger
-                              id="msg-active-exchange"
-                              className="w-full"
-                              size="sm"
-                            >
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent
-                              className="z-[1100]"
-                              position="popper"
-                            >
-                              {selected.row.exchanges.map((e) => (
-                                <SelectItem key={e.id} value={e.id}>
-                                  {e.skillTitle} · {e.bookedMinutes} min ·{" "}
-                                  {new Date(e.createdAt).toLocaleString(
-                                    locale === "tr" ? "tr-TR" : "en-US",
-                                    { dateStyle: "short" },
-                                  )}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      ) : null}
                     </div>
                   </div>
 
@@ -939,8 +880,8 @@ export function MessagesPage({ onNavigate, onViewUserProfile }: MessagesPageProp
                   )}
 
                   {selected.uiStatus === "pending-outgoing" && (
-                    <div className="border-b border-yellow-100 bg-yellow-50 p-4 dark:border-yellow-900/40 dark:bg-yellow-950/30">
-                      <p className="text-sm text-foreground/90">
+                    <div className="border-b border-amber-200 bg-amber-50/95 p-4 text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/35 dark:text-amber-100">
+                      <p className="text-sm">
                         {formatTemplate(m.waitingOutgoing, {
                           name: selected.otherName,
                         })}
@@ -951,7 +892,7 @@ export function MessagesPage({ onNavigate, onViewUserProfile }: MessagesPageProp
                             type="button"
                             size="sm"
                             variant="outline"
-                            className="border-amber-600/50 text-amber-900 dark:text-amber-200"
+                            className="border-amber-700/40 text-amber-900 hover:bg-amber-100 dark:border-amber-300/40 dark:text-amber-100 dark:hover:bg-amber-900/40"
                             onClick={() => setCancelOpen(true)}
                           >
                             <X className="mr-1 h-4 w-4" />
@@ -964,30 +905,17 @@ export function MessagesPage({ onNavigate, onViewUserProfile }: MessagesPageProp
 
                   {selected.uiStatus === "accepted" && (
                     <div className="border-b border-emerald-100 bg-emerald-50 p-4 dark:border-emerald-900/50 dark:bg-emerald-950/30">
-                      <p className="text-sm text-foreground/90">{m.acceptedSessionHint}</p>
-                      {canMarkCompleteSelected ? (
-                        <p className="mt-2 text-xs text-muted-foreground">
-                          {m.instructorMarkCompleteHint}
-                        </p>
-                      ) : null}
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {canMarkCompleteSelected ? (
-                          <Button
-                            type="button"
-                            size="sm"
-                            className="bg-emerald-600 text-white hover:bg-emerald-700"
-                            onClick={() => void handleMarkComplete()}
-                          >
-                            <CheckCircle2 className="mr-1 h-4 w-4" />
-                            {m.markSessionComplete}
-                          </Button>
-                        ) : null}
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="space-y-1 text-sm text-foreground/90">
+                          <p>{selected.ex.skillTitle}</p>
+                          <p>{formatScheduledAt(selected.ex.scheduledStartAt, locale)}</p>
+                        </div>
                         {canCancelSelected ? (
                           <Button
                             type="button"
                             size="sm"
                             variant="outline"
-                            className="border-destructive/50 text-destructive hover:bg-destructive/10"
+                            className="ml-auto border-destructive/50 text-destructive hover:bg-destructive/10"
                             onClick={() => setCancelOpen(true)}
                           >
                             <X className="mr-1 h-4 w-4" />
@@ -995,62 +923,16 @@ export function MessagesPage({ onNavigate, onViewUserProfile }: MessagesPageProp
                           </Button>
                         ) : null}
                       </div>
-                      <div className="mt-4 space-y-3 border-t border-emerald-200/80 pt-4 text-sm dark:border-emerald-800/80">
-                        {sameUserId(selected.ex.ownerId, user?.id) ? (
-                          <div>
-                            <Label
-                              className="text-foreground/90"
-                              htmlFor="session-meet-url"
-                            >
-                              {m.sessionLinkTitle}
-                            </Label>
-                            <p className="mb-2 text-xs text-muted-foreground">
-                              {m.sessionLinkHint}
-                            </p>
-                            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                              <Input
-                                id="session-meet-url"
-                                value={meetingDraft}
-                                onChange={(e) => setMeetingDraft(e.target.value)}
-                                placeholder={m.sessionLinkPlaceholder}
-                                className="sm:flex-1"
-                              />
-                              <Button
-                                type="button"
-                                size="sm"
-                                variant="secondary"
-                                onClick={() => void handleSaveMeeting()}
-                              >
-                                {m.saveSessionLink}
-                              </Button>
-                            </div>
-                          </div>
+                      <div className="mt-3 flex flex-wrap items-center justify-end gap-2">
+                        {isSelectedRequesterSide && !selected.ex.requesterAttendanceAckAt ? (
+                          <Button type="button" size="sm" variant="secondary" onClick={() => void handleRequesterStarted()}>
+                            {m.requesterConfirmStarted}
+                          </Button>
                         ) : null}
-                        {selected.ex.sessionMeetingUrl?.trim() ? (
-                          <a
-                            href={meetingHref(selected.ex.sessionMeetingUrl)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-block font-medium text-primary underline-offset-2 hover:underline"
-                          >
-                            {meetingHref(selected.ex.sessionMeetingUrl!)}
-                          </a>
-                        ) : null}
-                        {sameUserId(selected.ex.requesterId, user?.id) ? (
-                          selected.ex.requesterAttendanceAckAt ? (
-                            <p className="text-xs text-muted-foreground">
-                              {m.requesterMarkedAttendance}
-                            </p>
-                          ) : (
-                            <Button
-                              type="button"
-                              size="sm"
-                              variant="outline"
-                              onClick={() => void handleAckAttendance()}
-                            >
-                              {m.requesterMarkAttendance}
-                            </Button>
-                          )
+                        {isSelectedOwnerSide && !selected.ex.ownerAttendanceAckAt ? (
+                          <Button type="button" size="sm" variant="secondary" onClick={() => void handleOwnerStarted()}>
+                            {m.ownerConfirmStarted}
+                          </Button>
                         ) : null}
                       </div>
                     </div>
@@ -1059,23 +941,6 @@ export function MessagesPage({ onNavigate, onViewUserProfile }: MessagesPageProp
                   {selected.uiStatus === "cancelled" && (
                     <div className="border-b border-border bg-muted/50 px-4 py-3 text-sm text-muted-foreground">
                       <p>{m.cancelledHint}</p>
-                    </div>
-                  )}
-
-                  {selected.uiStatus === "rejected" && (
-                    <div className="border-b border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
-                      <p>{m.rejectedHint}</p>
-                      {canCreateNewOffer ? (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="mt-2"
-                          onClick={openBookModal}
-                        >
-                          <CalendarPlus className="mr-1 h-4 w-4" />
-                          {m.createBooking}
-                        </Button>
-                      ) : null}
                     </div>
                   )}
 
@@ -1096,24 +961,49 @@ export function MessagesPage({ onNavigate, onViewUserProfile }: MessagesPageProp
                           key={line.id}
                           className={`flex ${line.sender === "me" ? "justify-end" : "justify-start"}`}
                         >
-                          <div
-                            className={`max-w-md ${line.sender === "me" ? "order-2" : "order-1"}`}
-                          >
-                            <div
-                              className={`rounded-2xl p-3 ${
-                                line.sender === "me"
-                                  ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white"
-                                  : "bg-muted text-foreground"
-                              }`}
-                            >
-                              <p className="text-sm whitespace-pre-wrap">
-                                {line.text}
+                          {line.kind === "offer-card" ? (
+                            <div className="max-w-xl rounded-xl border border-border bg-muted/40 p-3 text-sm">
+                              <p className="font-medium text-foreground">
+                                {line.offerStatus === "rejected"
+                                  ? m.rejectedBadge
+                                  : line.offerStatus === "pending-incoming"
+                                    ? m.pendingRequest
+                                    : m.waitingApproval}
+                              </p>
+                              <p className="mt-1 text-muted-foreground">
+                                {m.requestSkill}: {line.offerSkillTitle}
+                              </p>
+                              <p className="text-muted-foreground">
+                                {m.requestDateTime}:{" "}
+                                {formatScheduledAt(line.offerScheduledAt, locale)}
+                              </p>
+                              <p className="text-muted-foreground">
+                                {line.offerMinutes} min
+                              </p>
+                              <p className="mt-1 text-xs text-muted-foreground">
+                                {line.timeLabel}
                               </p>
                             </div>
-                            <p className="mt-1 px-3 text-xs text-muted-foreground">
-                              {line.timeLabel}
-                            </p>
-                          </div>
+                          ) : (
+                            <div
+                              className={`max-w-md ${line.sender === "me" ? "order-2" : "order-1"}`}
+                            >
+                              <div
+                                className={`rounded-2xl p-3 ${
+                                  line.sender === "me"
+                                    ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white"
+                                    : "bg-muted text-foreground"
+                                }`}
+                              >
+                                <p className="text-sm whitespace-pre-wrap">
+                                  {line.text}
+                                </p>
+                              </div>
+                              <p className="mt-1 px-3 text-xs text-muted-foreground">
+                                {line.timeLabel}
+                              </p>
+                            </div>
+                          )}
                         </div>
                       ))
                     )}

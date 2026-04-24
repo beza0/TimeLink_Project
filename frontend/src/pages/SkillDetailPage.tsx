@@ -37,6 +37,7 @@ import {
   MessageCircle,
   CalendarIcon,
   ArrowLeft,
+  AlertTriangle,
 } from "lucide-react";
 import type { PageType } from "../App";
 import { useParams } from "react-router-dom";
@@ -45,6 +46,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { formatTemplate } from "../language";
 import { useEffect, useMemo, useState } from "react";
 import { fetchSkillById, type SkillDto } from "../api/skills";
+import { fetchMyProfile } from "../api/user";
 import {
   createExchangeRequest,
   fetchReceivedExchangeRequests,
@@ -185,6 +187,8 @@ export function SkillDetailPage({
   const [bookErr, setBookErr] = useState<string | null>(null);
   const [bookDate, setBookDate] = useState(() => tomorrowDateStr());
   const [bookTime, setBookTime] = useState("10:00");
+  const [bookDurationMinutes, setBookDurationMinutes] = useState("60");
+  const [myTimeCreditMinutes, setMyTimeCreditMinutes] = useState<number>(0);
   const [bookDatePopoverOpen, setBookDatePopoverOpen] = useState(false);
   const [bookCalendarMonth, setBookCalendarMonth] = useState<Date>(() =>
     ymdToLocalDate(tomorrowDateStr()),
@@ -243,8 +247,32 @@ export function SkillDetailPage({
     setBookErr(null);
     setBookDate(tomorrowDateStr());
     setBookTime("10:00");
+    setBookDurationMinutes("60");
+    setMyTimeCreditMinutes(0);
     setBookCalendarMonth(ymdToLocalDate(tomorrowDateStr()));
   }, [skillId]);
+
+  useEffect(() => {
+    if (!token) {
+      setMyTimeCreditMinutes(0);
+      return;
+    }
+    let cancelled = false;
+    fetchMyProfile(token)
+      .then((profile) => {
+        if (!cancelled) {
+          setMyTimeCreditMinutes(profile.timeCreditMinutes);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setMyTimeCreditMinutes(0);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [token]);
 
   const hasAvailabilityConstraints = useMemo(
     () =>
@@ -363,6 +391,29 @@ export function SkillDetailPage({
     bookDate,
   ]);
 
+  const durationOptions = useMemo(() => {
+    const byCredit = Math.floor(myTimeCreditMinutes / 30) * 30;
+    if (byCredit < 30) return [];
+
+    let maxAllowed = byCredit;
+    if (hasAvailabilityConstraints && skill?.availableUntil) {
+      const remainingInWindow = toMinutes(skill.availableUntil) - toMinutes(bookTime);
+      maxAllowed = Math.min(maxAllowed, Math.floor(remainingInWindow / 30) * 30);
+    }
+
+    if (maxAllowed < 30) return [];
+    const out: string[] = [];
+    for (let m = 30; m <= maxAllowed; m += 30) {
+      out.push(String(m));
+    }
+    return out;
+  }, [
+    myTimeCreditMinutes,
+    hasAvailabilityConstraints,
+    skill?.availableUntil,
+    bookTime,
+  ]);
+
   useEffect(() => {
     if (!hasAvailabilityConstraints) return;
     if (dateOptions.length === 0) return;
@@ -378,6 +429,14 @@ export function SkillDetailPage({
       setBookTime(timeOptions[0]);
     }
   }, [hasAvailabilityConstraints, timeOptions, bookTime]);
+
+  useEffect(() => {
+    if (durationOptions.length === 0) return;
+    if (!durationOptions.includes(bookDurationMinutes)) {
+      const preferred = durationOptions.includes("60") ? "60" : durationOptions[0];
+      setBookDurationMinutes(preferred);
+    }
+  }, [durationOptions, bookDurationMinutes]);
 
   const learnersCountForOwner = useMemo(
     () => new Set(receivedTeachingForSkill.map((b) => b.requesterId)).size,
@@ -425,9 +484,14 @@ export function SkillDetailPage({
         return;
       }
     }
+    if (durationOptions.length === 0 || !durationOptions.includes(bookDurationMinutes)) {
+      setBookErr(s.bookNotEnoughCredits);
+      return;
+    }
     setBookSubmitting(true);
     setBookErr(null);
     const scheduledStartAt = localDateTimeToUtcIso(bookDate, bookTime);
+    const bookedMinutes = Number(bookDurationMinutes);
     const minMs = Date.now() + 60 * 60 * 1000;
     if (new Date(scheduledStartAt).getTime() < minMs) {
       setBookErr(s.bookTooSoon);
@@ -442,7 +506,7 @@ export function SkillDetailPage({
     try {
       const created = await createExchangeRequest(token, skill.id, {
         message: bookMessage.trim() || s.bookDefaultMessage,
-        bookedMinutes: 60,
+        bookedMinutes,
         scheduledStartAt,
       });
       try {
@@ -800,14 +864,6 @@ export function SkillDetailPage({
             <ModalHeader>
               <ModalTitle>{s.bookModalTitle}</ModalTitle>
             </ModalHeader>
-            {bookErr ? (
-              <div
-                className="mb-4 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive"
-                role="alert"
-              >
-                {bookErr}
-              </div>
-            ) : null}
             <div className="space-y-4">
               {hasAvailabilityConstraints ? (
                 <div className="flex flex-wrap gap-2 rounded-lg border border-primary/20 bg-primary/5 p-3 text-xs">
@@ -818,7 +874,7 @@ export function SkillDetailPage({
                 </div>
               ) : null}
               <p className="text-sm text-muted-foreground">{s.bookScheduleHint}</p>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <div className="min-w-0">
                   <Label htmlFor="book-date-trigger">{s.bookDateLabel}</Label>
                   {hasAvailabilityConstraints ? (
@@ -910,9 +966,32 @@ export function SkillDetailPage({
                     />
                   )}
                 </div>
+                <div>
+                  <Label htmlFor="book-duration">{s.bookDurationLabel}</Label>
+                  <Select value={bookDurationMinutes} onValueChange={setBookDurationMinutes}>
+                    <SelectTrigger id="book-duration" className="mt-2">
+                      <SelectValue placeholder={s.bookDurationLabel} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {durationOptions.map((opt) => (
+                        <SelectItem key={opt} value={opt}>
+                          {`${opt} dk`}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
+              <p className="text-xs text-muted-foreground">
+                {formatTemplate(s.bookDurationHint, {
+                  credits: String(Math.floor(myTimeCreditMinutes / 30) * 30),
+                })}
+              </p>
               {hasAvailabilityConstraints && dateOptions.length === 0 ? (
                 <p className="text-sm text-destructive">{s.bookNoSlots}</p>
+              ) : null}
+              {durationOptions.length === 0 ? (
+                <p className="text-sm text-destructive">{s.bookNotEnoughCredits}</p>
               ) : null}
               <div>
                 <Label htmlFor="book-msg">{s.bookMessage}</Label>
@@ -926,6 +1005,15 @@ export function SkillDetailPage({
                 />
               </div>
             </div>
+            {bookErr ? (
+              <div
+                className="mt-3 flex items-start gap-2 rounded-lg border border-red-600 bg-red-200 px-3 py-2 text-sm text-red-900 shadow-lg shadow-red-500/50 dark:border-red-500 dark:bg-red-950/45 dark:text-red-200"
+                role="alert"
+              >
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                <span>{bookErr}</span>
+              </div>
+            ) : null}
             <ModalFooter>
               <Button
                 type="button"
@@ -939,7 +1027,11 @@ export function SkillDetailPage({
                 type="button"
                 className="bg-gradient-to-r from-blue-500 to-purple-600 text-white"
                 onClick={() => void submitBookRequest()}
-                disabled={bookSubmitting || (hasAvailabilityConstraints && dateOptions.length === 0)}
+                disabled={
+                  bookSubmitting ||
+                  (hasAvailabilityConstraints && dateOptions.length === 0) ||
+                  durationOptions.length === 0
+                }
               >
                 {bookSubmitting ? t.common.loading : s.bookSubmit}
               </Button>

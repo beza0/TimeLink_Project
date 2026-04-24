@@ -86,6 +86,14 @@ export function markAllNotificationsRead(token: string) {
   });
 }
 
+export function deleteSelectedNotifications(token: string, ids: string[]) {
+  return apiFetch<void>("/api/notifications/delete-selected", {
+    method: "POST",
+    token,
+    body: JSON.stringify({ ids }),
+  });
+}
+
 /** True if the notification should count toward the unread badge. */
 export function isNotificationUnread(n: NotificationDto): boolean {
   const r = n.readAt;

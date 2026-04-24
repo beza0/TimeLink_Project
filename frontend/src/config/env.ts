@@ -8,5 +8,12 @@ export function getApiBaseUrl(): string {
   if (raw !== undefined && raw.trim() !== "") {
     return raw.replace(/\/$/, "");
   }
-  return "";
+  if (typeof window === "undefined") return "";
+  const host = window.location.hostname.toLowerCase();
+  // Local proxied hosts use same-origin /api.
+  if (host === "localhost" || host === "127.0.0.1") {
+    return "";
+  }
+  // Fallback for preview/webview contexts where same-origin has no /api proxy.
+  return "http://localhost:8080";
 }

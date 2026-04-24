@@ -53,5 +53,23 @@ public class BookingReminderScheduler {
                 log.warn("Reminder failed for exchange {}: {}", ex.getId(), e.getMessage());
             }
         }
+
+        Instant startWindow = now.minus(1, ChronoUnit.MINUTES);
+        Instant endWindow = now.plus(1, ChronoUnit.MINUTES);
+        List<ExchangeRequest> startDue = exchangeRequestRepository
+                .findByStatusAndStartedPromptSentFalseAndScheduledStartAtBetween(
+                        ExchangeRequestStatus.ACCEPTED,
+                        startWindow,
+                        endWindow
+                );
+        for (ExchangeRequest ex : startDue) {
+            try {
+                notificationService.sendSessionStartPrompt(ex);
+                ex.setStartedPromptSent(true);
+                exchangeRequestRepository.save(ex);
+            } catch (Exception e) {
+                log.warn("Session-start prompt failed for exchange {}: {}", ex.getId(), e.getMessage());
+            }
+        }
     }
 }

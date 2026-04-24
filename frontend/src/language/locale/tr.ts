@@ -442,7 +442,7 @@ export const tr: Translation = {
     cancelPending: "Talebi geri çek",
     cancelConfirmTitle: "Bu rezervasyon iptal edilsin mi?",
     cancelConfirmBody:
-      "Geri alınamaz. Zaman kredileri yalnızca oturum tamamlanınca hareket eder; bu yüzden bu işlemde bakiyeniz değişmez. Karşı taraf bilgilendirilir.",
+      "Geri alınamaz. Bekleyen/onaylı rezervasyon iptal edilirse askıdaki kredi öğrenciye iade edilir. Karşı taraf bilgilendirilir.",
     markSessionComplete: "Oturumu tamamlandı işaretle",
     instructorMarkCompleteHint:
       "Eğitmen olarak oturum bittiğinde tamamlandı diye işaretleyin. Öğrenci sizi puanlayabilir ve zaman kredileri aktarılır.",
@@ -467,6 +467,8 @@ export const tr: Translation = {
     saveSessionLink: "Linki kaydet",
     requesterMarkAttendance: "Oturuma katıldım (isteğe bağlı)",
     requesterMarkedAttendance: "Katılım onaylandı. Kredi aktarımı yine eğitmenin tamamlandı adımıyla olur.",
+    requesterConfirmStarted: "Oturum başladı diye onayla",
+    ownerConfirmStarted: "Eğitmen başladı onayı",
   },
   publicUserProfile: {
     title: "Profil",
@@ -687,13 +689,18 @@ export const tr: Translation = {
       "Her oturum {{minutes}} dakika. Toplam: {{total}} dakika (1 saat = 60 dakika).",
     bookDateLabel: "Tarih",
     bookTimeLabel: "Başlangıç saati",
+    bookDurationLabel: "Süre",
     bookScheduleHint:
       "Oturum en az 1 saat sonrası için olmalıdır. Başlangıçtan yaklaşık 1 saat önce size hatırlatma bildirimi gider.",
+    bookDurationHint:
+      "Mevcut saat bakiyenize göre en fazla {{credits}} dakika seçebilirsiniz.",
     bookTooSoon: "Başlangıç zamanı şu andan en az 1 saat sonra olmalıdır.",
     bookOutsideAvailability:
       "Seçtiğiniz gün/saat eğitmenin uygunluk aralığında değil.",
     bookNoSlots:
       "Eğitmenin mevcut uygunluğunda seçilebilir bir slot bulunmuyor.",
+    bookNotEnoughCredits:
+      "Rezervasyon için yeterli saat bakiyeniz yok. Önce saat kredisi kazanmalısınız.",
     bookMessage: "Eğitmene mesaj",
     bookMessagePh: "Kendini ve ne öğrenmek istediğini yaz…",
     bookDefaultMessage: "Oturum ayırtmak istiyorum.",
@@ -776,8 +783,9 @@ export const tr: Translation = {
     empty: "Henüz bildiriminiz yok.",
     emptyUnreadFilter: "Bu listede okunmamış bildirim yok.",
     unreadOnly: "Yalnızca okunmamış",
-    selectAllVisible: "Görünenleri seç",
+    selectAllVisible: "Tümünü seç",
     markSelectedRead: "Seçilileri okundu işaretle",
+    deleteSelected: "Sil",
     goBack: "Geri",
   },
 };

@@ -2,7 +2,7 @@ import { Card } from "../ui/card";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
 import { ImageWithFallback } from "../common/ImageWithFallback";
-import { Clock, Star, MapPin } from "lucide-react";
+import { Star } from "lucide-react";
 import { useLanguage } from "../../contexts/LanguageContext";
 
 function initials(name: string): string {
@@ -111,26 +111,20 @@ export function SkillCard({
           </div>
         </div>
 
-        <div className="mb-4 space-y-2">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <MapPin className="h-4 w-4 shrink-0" />
-            <span>{sessionTypeLabel}</span>
-          </div>
-          {availability ? (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Clock className="h-4 w-4 shrink-0" />
-              <span>{availability}</span>
-            </div>
-          ) : null}
-          {isInPerson && locationLabel ? (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <MapPin className="h-4 w-4 shrink-0" />
-              <span>{locationLabel}</span>
-            </div>
-          ) : null}
-        </div>
-
         <div className="mb-4 flex flex-wrap gap-2">
+          <Badge variant="outline" className="text-xs">
+            {sessionTypeLabel}
+          </Badge>
+          {isInPerson && locationLabel ? (
+            <Badge variant="outline" className="text-xs">
+              {locationLabel}
+            </Badge>
+          ) : null}
+          {availability ? (
+            <Badge variant="outline" className="text-xs">
+              {availability}
+            </Badge>
+          ) : null}
           {tags.map((tag, index) => (
             <Badge key={index} variant="secondary" className="text-xs">
               {tag}

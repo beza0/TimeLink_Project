@@ -22,6 +22,7 @@ public class ExchangeRequestResponse {
     private Instant createdAt;
     private String sessionMeetingUrl;
     private Instant requesterAttendanceAckAt;
+    private Instant ownerAttendanceAckAt;
 
     public ExchangeRequestResponse(
             UUID id,
@@ -38,7 +39,8 @@ public class ExchangeRequestResponse {
             ExchangeRequestStatus status,
             Instant createdAt,
             String sessionMeetingUrl,
-            Instant requesterAttendanceAckAt
+            Instant requesterAttendanceAckAt,
+            Instant ownerAttendanceAckAt
     ) {
         this.id = id;
         this.skillId = skillId;
@@ -55,6 +57,7 @@ public class ExchangeRequestResponse {
         this.createdAt = createdAt;
         this.sessionMeetingUrl = sessionMeetingUrl;
         this.requesterAttendanceAckAt = requesterAttendanceAckAt;
+        this.ownerAttendanceAckAt = ownerAttendanceAckAt;
     }
 
     public UUID getId() {
@@ -115,5 +118,9 @@ public class ExchangeRequestResponse {
 
     public Instant getRequesterAttendanceAckAt() {
         return requesterAttendanceAckAt;
+    }
+
+    public Instant getOwnerAttendanceAckAt() {
+        return ownerAttendanceAckAt;
     }
 }

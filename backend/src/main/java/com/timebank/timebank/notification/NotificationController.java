@@ -58,6 +58,16 @@ public class NotificationController {
         return ResponseEntity.noContent().build();
     }
 
+    @PostMapping("/delete-selected")
+    public ResponseEntity<Void> deleteSelected(
+            @RequestBody DeleteSelectedRequest request,
+            Authentication authentication
+    ) {
+        List<UUID> ids = request != null && request.ids() != null ? request.ids() : List.of();
+        notificationService.deleteSelected(authentication.getName(), ids);
+        return ResponseEntity.noContent().build();
+    }
+
     @PutMapping("/read-all")
     public ResponseEntity<Void> markAllReadPut(Authentication authentication) {
         notificationService.markAllRead(authentication.getName());
@@ -100,4 +110,6 @@ public class NotificationController {
         notificationService.markUnread(authentication.getName(), id);
         return ResponseEntity.noContent().build();
     }
+
+    public record DeleteSelectedRequest(List<UUID> ids) {}
 }

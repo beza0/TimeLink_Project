@@ -32,7 +32,7 @@ public class ReviewService {
     }
 
     public ReviewResponse createReview(UUID exchangeRequestId, CreateReviewRequest req, String reviewerEmail) {
-        User reviewer = userRepository.findByEmail(reviewerEmail)
+        User reviewer = userRepository.findByEmailIgnoreCase(reviewerEmail)
                 .orElseThrow(() -> new BadCredentialsException("Kullanıcı bulunamadı"));
 
         ExchangeRequest exchangeRequest = exchangeRequestRepository.findById(exchangeRequestId)

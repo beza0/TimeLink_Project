@@ -439,7 +439,7 @@ export const en = {
     cancelPending: "Withdraw request",
     cancelConfirmTitle: "Cancel this booking?",
     cancelConfirmBody:
-      "This cannot be undone. Time credits in TimeLink are only moved when the session is completed, so your balance is unchanged. The other person will be notified.",
+      "This cannot be undone. Held credits are returned to the learner if a pending/accepted booking is cancelled. The other person will be notified.",
     markSessionComplete: "Mark session complete",
     instructorMarkCompleteHint:
       "As the instructor, mark the session when it’s done. The learner can then rate you, and time credits are transferred.",
@@ -464,6 +464,8 @@ export const en = {
     saveSessionLink: "Save link",
     requesterMarkAttendance: "I attended the session (optional)",
     requesterMarkedAttendance: "You confirmed attendance. The host still marks complete to transfer credits.",
+    requesterConfirmStarted: "I confirm session started",
+    ownerConfirmStarted: "Instructor confirms started",
   },
   publicUserProfile: {
     title: "Profile",
@@ -684,13 +686,17 @@ export const en = {
       "Each session is {{minutes}} minutes. Total booked: {{total}} minutes (1 hour = 60 minutes).",
     bookDateLabel: "Date",
     bookTimeLabel: "Start time",
+    bookDurationLabel: "Duration",
     bookScheduleHint:
       "The session must start at least 1 hour from now. You’ll get a reminder notification about 1 hour before it starts.",
+    bookDurationHint: "You can select up to {{credits}} minutes based on your current credit balance.",
     bookTooSoon: "Start time must be at least 1 hour from now.",
     bookOutsideAvailability:
       "This instructor is not available at the selected day/time.",
     bookNoSlots:
       "No selectable slots are available in this instructor's current availability.",
+    bookNotEnoughCredits:
+      "You don't have enough time credits for booking. Earn more credits first.",
     bookMessage: "Message to instructor",
     bookMessagePh: "Introduce yourself and what you’d like to learn…",
     bookDefaultMessage: "I’d like to book a session.",
@@ -771,8 +777,9 @@ export const en = {
     empty: "You have no notifications yet.",
     emptyUnreadFilter: "No unread notifications in this list.",
     unreadOnly: "Unread only",
-    selectAllVisible: "Select all visible",
+    selectAllVisible: "Select all",
     markSelectedRead: "Mark read",
+    deleteSelected: "Delete",
     goBack: "Back",
   },
 };

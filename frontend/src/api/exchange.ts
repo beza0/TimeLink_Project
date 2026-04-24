@@ -17,6 +17,7 @@ export type ExchangeRequestDto = {
   createdAt: string;
   sessionMeetingUrl?: string | null;
   requesterAttendanceAckAt?: string | null;
+  ownerAttendanceAckAt?: string | null;
 };
 
 export type ExchangeMessageDto = {
@@ -103,14 +104,6 @@ export function cancelExchangeRequest(token: string, requestId: string) {
   );
 }
 
-/** Sadece beceri sahibi (eğitmen) çağırabilir: oturum tamamlandı → puan/ödeme. */
-export function completeExchangeRequest(token: string, requestId: string) {
-  return apiFetch<ExchangeRequestDto>(
-    `/api/exchange-requests/${requestId}/complete`,
-    { method: "PUT", token },
-  );
-}
-
 export function createCounterOffer(
   token: string,
   requestId: string,
@@ -151,6 +144,16 @@ export function acknowledgeRequesterAttendance(
 ) {
   return apiFetch<ExchangeRequestDto>(
     `/api/exchange-requests/${encodeURIComponent(exchangeId)}/ack-attendance`,
+    {
+      method: "POST",
+      token,
+    },
+  );
+}
+
+export function acknowledgeOwnerAttendance(token: string, exchangeId: string) {
+  return apiFetch<ExchangeRequestDto>(
+    `/api/exchange-requests/${encodeURIComponent(exchangeId)}/ack-owner-attendance`,
     {
       method: "POST",
       token,

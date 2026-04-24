@@ -57,6 +57,18 @@ public class ExchangeRequest {
     @Column(name = "requester_attendance_ack_at")
     private Instant requesterAttendanceAckAt;
 
+    /** İsteğe bağlı: eğitmen (beceri sahibi) oturumun başladığını işaretledi */
+    @Column(name = "owner_attendance_ack_at")
+    private Instant ownerAttendanceAckAt;
+
+    /** Talep oluşturulurken öğrenciden düşülen ve askıda tutulan kredi */
+    @Column(name = "requester_credit_held", nullable = false)
+    private boolean requesterCreditHeld;
+
+    /** Oturum başlangıcında "başladı mı?" bildirimi gönderildi mi */
+    @Column(name = "started_prompt_sent", nullable = false)
+    private boolean startedPromptSent;
+
     @PrePersist
     public void prePersist() {
         if (createdAt == null) {
@@ -161,5 +173,29 @@ public class ExchangeRequest {
 
     public void setRequesterAttendanceAckAt(Instant requesterAttendanceAckAt) {
         this.requesterAttendanceAckAt = requesterAttendanceAckAt;
+    }
+
+    public Instant getOwnerAttendanceAckAt() {
+        return ownerAttendanceAckAt;
+    }
+
+    public void setOwnerAttendanceAckAt(Instant ownerAttendanceAckAt) {
+        this.ownerAttendanceAckAt = ownerAttendanceAckAt;
+    }
+
+    public boolean isRequesterCreditHeld() {
+        return requesterCreditHeld;
+    }
+
+    public void setRequesterCreditHeld(boolean requesterCreditHeld) {
+        this.requesterCreditHeld = requesterCreditHeld;
+    }
+
+    public boolean isStartedPromptSent() {
+        return startedPromptSent;
+    }
+
+    public void setStartedPromptSent(boolean startedPromptSent) {
+        this.startedPromptSent = startedPromptSent;
     }
 }

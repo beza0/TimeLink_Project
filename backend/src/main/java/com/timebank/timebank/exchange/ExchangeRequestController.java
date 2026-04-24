@@ -144,4 +144,16 @@ public class ExchangeRequestController {
                 )
         );
     }
+
+    @PostMapping("/{requestId}/ack-owner-attendance")
+    public ResponseEntity<ExchangeRequestResponse> acknowledgeOwnerAttendance(
+            @PathVariable UUID requestId,
+            Authentication authentication
+    ) {
+        return ResponseEntity.ok(
+                exchangeRequestService.acknowledgeOwnerAttendance(
+                        requestId, authentication.getName()
+                )
+        );
+    }
 }

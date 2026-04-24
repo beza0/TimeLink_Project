@@ -292,7 +292,7 @@ public class UserService {
     }
 
     public UserProfileResponse getMyProfile(String email) {
-        User user = userRepository.findByEmail(email)
+        User user = userRepository.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new BadCredentialsException("Kullanıcı bulunamadı"));
 
         return toProfileResponse(user);
@@ -322,7 +322,7 @@ public class UserService {
 
     @Transactional
     public UserProfileResponse updateMyProfile(String email, UpdateUserProfileRequest req) {
-        User user = userRepository.findByEmail(email)
+        User user = userRepository.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new BadCredentialsException("Kullanıcı bulunamadı"));
 
         user.setFullName(req.getFullName().trim());
@@ -367,7 +367,7 @@ public class UserService {
     }
 
     public UserDashboardResponse getMyDashboard(String email) {
-        User user = userRepository.findByEmail(email)
+        User user = userRepository.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new BadCredentialsException("Kullanıcı bulunamadı"));
 
         long mySkillsCount = skillRepository.countByOwnerEmail(email);
@@ -392,7 +392,7 @@ public class UserService {
         String email = emailRaw.trim().toLowerCase();
         clearPendingSignupForEmail(email);
 
-        User user = userRepository.findByEmail(email).orElse(null);
+        User user = userRepository.findByEmailIgnoreCase(email).orElse(null);
         if (user == null) {
             return;
         }
