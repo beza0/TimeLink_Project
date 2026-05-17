@@ -440,7 +440,7 @@ export const tr: Translation = {
       verifyMailHint:
         "Şu an Mailpit kullanılıyor — kod gerçek gelen kutunuza gitmez. Kodu görmek için http://localhost:8025 adresini açın.",
       verifyRealInboxHint:
-        "SMTP gerçek bir sunucuya ayarlı — gelen kutunuzu ve spam klasörünü kontrol edin. Kod gelmezse «Kodu tekrar gönder»e basın; hata görürseniz Render backend SMTP ayarları (Brevo gönderici + SMTP key) eksik veya hatalıdır.",
+        "Gelen kutunuzu ve spam klasörünü kontrol edin. Kod birkaç dakika içinde gelebilir.",
       verifyLogsHint:
         "API üzerinde SMTP kapalı — e-posta gönderilmedi. Doğrulama kodu için API konteyner loglarına bakın veya proje `.env` içinde SPRING_MAIL_HOST tanımlayın.",
       codeLabel: "Doğrulama kodu",

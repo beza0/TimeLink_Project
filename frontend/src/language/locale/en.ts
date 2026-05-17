@@ -439,7 +439,7 @@ export const en = {
       verifyMailHint:
         "Docker is using Mailpit — messages do not go to your real inbox. Open http://localhost:8025 to read the code.",
       verifyRealInboxHint:
-        "SMTP targets a real mail server — check your inbox and spam. If no code arrives, tap Resend; an error means backend SMTP (Brevo sender + SMTP key) must be fixed on Render.",
+        "Check your inbox and spam folder. The code may take a few minutes to arrive.",
       verifyLogsHint:
         "SMTP is off on the API — no email was sent. Check the API container logs for the verification code, or set SPRING_MAIL_HOST in your project `.env`.",
       codeLabel: "Verification code",
