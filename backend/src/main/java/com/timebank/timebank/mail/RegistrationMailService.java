@@ -100,25 +100,40 @@ public class RegistrationMailService {
         sendVerificationCode(user.getFullName(), user.getEmail(), code);
     }
 
-    /** Kayıt / yeniden gönder — HTTP yanıtını bekletmemek için arka planda. */
+    /**
+     * Kayıt / yeniden gönder — HTTP yanıtını bekletmez; SMTP hatası kaydı iptal etmez.
+     * @return true e-posta SMTP ile gönderildi
+     */
     @Async
     public void sendVerificationCodeAsync(String fullName, String email, String code) {
-        sendVerificationCode(fullName, email, code);
+        boolean sent = sendVerificationCode(fullName, email, code);
+        if (!sent) {
+            log.warn(
+                    "Doğrulama e-postası gönderilemedi (kayıt yine de tamam). e-posta={} — Render loglarında SMTP hatasına bakın; geçici olarak APP_MAIL_ENABLED=false veya Brevo ayarlarını düzeltin.",
+                    email);
+        }
     }
 
-    /** Bekleyen kayıt veya doğrulama yeniden gönderimi için (User satırı olmadan). */
-    public void sendVerificationCode(String fullName, String email, String code) {
+    /**
+     * Bekleyen kayıt veya doğrulama yeniden gönderimi.
+     * @return true gönderim başarılı; false atlandı veya SMTP hatası (çağıran HTTP isteğini patlatmaz)
+     */
+    public boolean sendVerificationCode(String fullName, String email, String code) {
         if (!isMailDeliveryEnabled()) {
-            return;
+            log.warn(
+                    "SMTP kapalı — doğrulama kodu e-postayla gitmez. e-posta={} kod={}",
+                    email,
+                    code);
+            return false;
         }
         JavaMailSender mailSender = mailSenderProvider.getIfAvailable();
         if (mailSender == null) {
             log.debug("JavaMailSender yok, doğrulama e-postası atlanıyor");
-            return;
+            return false;
         }
         if (code == null || code.isBlank()) {
             log.warn("Doğrulama kodu boş, e-posta atlanıyor: {}", email);
-            return;
+            return false;
         }
         String from = fromAddress();
         String publicBase = environment.getProperty("app.public-base-url", "http://localhost:3000").trim().replaceAll("/$", "");
@@ -137,6 +152,7 @@ public class RegistrationMailService {
             );
             mailSender.send(msg);
             log.info("Doğrulama e-postası gönderildi: {}", email);
+            return true;
         } catch (Exception e) {
             String host = environment.getProperty("spring.mail.host", "(yok)");
             log.error(
@@ -147,11 +163,19 @@ public class RegistrationMailService {
                     e.getMessage(),
                     e
             );
-            throw new IllegalStateException(
-                    "Doğrulama e-postası gönderilemedi. SMTP ayarlarını (Brevo gönderici, SMTP key, APP_MAIL_FROM) kontrol edin.",
-                    e
-            );
+            if (isStrictMailErrors()) {
+                throw new IllegalStateException(
+                        "Doğrulama e-postası gönderilemedi. SMTP ayarlarını (Brevo gönderici, SMTP key, APP_MAIL_FROM) kontrol edin.",
+                        e
+                );
+            }
+            return false;
         }
+    }
+
+    /** true ise SMTP hatası HTTP 503 olarak yukarı fırlar (varsayılan: false). */
+    private boolean isStrictMailErrors() {
+        return Boolean.TRUE.equals(environment.getProperty("app.mail.strict-errors", Boolean.class));
     }
 
     @Async
