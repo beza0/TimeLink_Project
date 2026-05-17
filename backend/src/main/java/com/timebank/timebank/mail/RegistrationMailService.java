@@ -6,8 +6,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.core.env.Environment;
 import jakarta.annotation.PostConstruct;
+import jakarta.mail.MessagingException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -82,10 +84,58 @@ public class RegistrationMailService {
     void logEffectiveMailBackend() {
         String host = environment.getProperty("spring.mail.host");
         log.info(
-                "SMTP: host={}, deliveryEnabled={}, localCapture(Mailpit)= {}",
+                "SMTP: host={}, deliveryEnabled={}, localCapture(Mailpit)= {}, from={}",
                 host == null || host.isBlank() ? "(none)" : host.trim(),
                 isMailDeliveryEnabled(),
-                isLocalCaptureSmtp());
+                isLocalCaptureSmtp(),
+                maskFromForLog(fromAddress()));
+        if (isMailDeliveryEnabled() && !isLocalCaptureSmtp()) {
+            probeSmtpConnection();
+        }
+    }
+
+    private void probeSmtpConnection() {
+        JavaMailSender mailSender = mailSenderProvider.getIfAvailable();
+        if (!(mailSender instanceof JavaMailSenderImpl impl)) {
+            return;
+        }
+        try {
+            impl.testConnection();
+            log.info(
+                    "SMTP bağlantı testi OK ({}:{}, user={})",
+                    impl.getHost(),
+                    impl.getPort(),
+                    maskEmailForLog(impl.getUsername()));
+        } catch (MessagingException e) {
+            log.error(
+                    "SMTP bağlantı testi BAŞARISIZ ({}:{}) — doğrulama e-postası gitmeyebilir. "
+                            + "Hata: {}. Gmail + Render sık engellenir; Brevo (smtp-relay.brevo.com) önerilir.",
+                    impl.getHost(),
+                    impl.getPort(),
+                    e.getMessage());
+        }
+    }
+
+    private static String maskFromForLog(String from) {
+        if (from == null || from.isBlank()) {
+            return "(yok)";
+        }
+        int at = from.indexOf('@');
+        if (at <= 1) {
+            return "***";
+        }
+        return from.charAt(0) + "***" + from.substring(at);
+    }
+
+    private static String maskEmailForLog(String email) {
+        if (email == null || email.isBlank()) {
+            return "(yok)";
+        }
+        int at = email.indexOf('@');
+        if (at <= 1) {
+            return "***";
+        }
+        return email.charAt(0) + "***" + email.substring(at);
     }
 
     /**
