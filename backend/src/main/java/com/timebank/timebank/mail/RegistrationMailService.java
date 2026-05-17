@@ -8,6 +8,7 @@ import org.springframework.core.env.Environment;
 import jakarta.annotation.PostConstruct;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.Locale;
@@ -99,6 +100,12 @@ public class RegistrationMailService {
         sendVerificationCode(user.getFullName(), user.getEmail(), code);
     }
 
+    /** Kayıt / yeniden gönder — HTTP yanıtını bekletmemek için arka planda. */
+    @Async
+    public void sendVerificationCodeAsync(String fullName, String email, String code) {
+        sendVerificationCode(fullName, email, code);
+    }
+
     /** Bekleyen kayıt veya doğrulama yeniden gönderimi için (User satırı olmadan). */
     public void sendVerificationCode(String fullName, String email, String code) {
         if (!isMailDeliveryEnabled()) {
@@ -137,6 +144,11 @@ public class RegistrationMailService {
                     e
             );
         }
+    }
+
+    @Async
+    public void sendPasswordResetCodeAsync(String fullName, String email, String code) {
+        sendPasswordResetCode(fullName, email, code);
     }
 
     /** Şifre sıfırlama kodu gönderir. */

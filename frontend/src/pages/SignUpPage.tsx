@@ -71,6 +71,9 @@ export function SignUpPage({ onNavigate }: SignUpPageProps) {
     setLoading(true);
     try {
       const created = await registerRequest({ fullName, email, password });
+      if (!created?.id) {
+        throw new Error(a.errorFailed);
+      }
       if (created.emailVerificationPending) {
         setPendingEmail(email.trim().toLowerCase());
         setSmtpMailDeliveryEnabled(Boolean(created.smtpMailDeliveryEnabled));
