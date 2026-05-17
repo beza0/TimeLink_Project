@@ -24,6 +24,24 @@ export interface Filters {
   minRating: number;
 }
 
+export const emptyFilters: Filters = {
+  categories: [],
+  locations: [],
+  minRating: 0,
+};
+
+export function hasActiveFilters(
+  filters: Filters,
+  searchQuery = "",
+): boolean {
+  return (
+    filters.categories.length > 0 ||
+    filters.locations.length > 0 ||
+    filters.minRating > 0 ||
+    searchQuery.trim().length > 0
+  );
+}
+
 interface FilterSidebarProps {
   filters: Filters;
   onFiltersChange: (filters: Filters) => void;
@@ -59,18 +77,16 @@ export function FilterSidebar({
   };
 
   const clearFilters = () => {
-    onFiltersChange({
-      categories: [],
-      locations: [],
-      minRating: 0,
-    });
+    onFiltersChange(emptyFilters);
   };
+
+  const canClear = showClearButton && hasActiveFilters(filters);
 
   return (
     <Card className="w-full rounded-2xl border border-border/80 p-6 shadow-lg">
       <div className="mb-6 flex items-center justify-between">
         <h3 className="text-lg text-foreground">{fi.title}</h3>
-        {showClearButton ? (
+        {canClear ? (
           <Button variant="ghost" size="sm" onClick={clearFilters}>
             {fi.clearAll}
           </Button>

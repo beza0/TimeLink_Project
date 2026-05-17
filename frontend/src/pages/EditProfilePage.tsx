@@ -28,7 +28,7 @@ interface EditProfilePageProps {
 }
 
 /** Profil fotoğrafı ham dosya üst sınırı (yaygın standart: 2 MiB) */
-const MAX_AVATAR_FILE_BYTES = 2 * 1024 * 1024;
+const MAX_AVATAR_FILE_BYTES = 4 * 1024 * 1024;
 
 export function EditProfilePage({ onNavigate }: EditProfilePageProps) {
   const { t, locale } = useLanguage();

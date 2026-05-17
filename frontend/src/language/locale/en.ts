@@ -924,10 +924,10 @@ export const en = {
     errorLoadFailed: "Could not load your profile.",
     errorSaveFailed: "Could not save your profile.",
     photoHint:
-      "Click the camera icon to set your profile photo (JPEG/PNG/WebP, max 2 MB).",
+      "Click the camera icon to set your profile photo (JPEG/PNG/WebP, max 4 MB).",
     photoChangeAria: "Upload or change profile photo",
     photoRemove: "Remove profile photo",
-    photoTooLarge: "File is too large. Choose an image under 2 MB.",
+    photoTooLarge: "File is too large. Choose an image under 4 MB.",
     photoInvalidType: "Please choose an image file (JPEG, PNG, WebP, or GIF).",
     fullName: "Full Name *",
     email: "Email *",

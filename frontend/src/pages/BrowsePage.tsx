@@ -1,7 +1,11 @@
 import { PageLayout } from "../components/layout/PageLayout";
 import { SkillCard } from "../components/browse/SkillCard";
 import { FilterSidebar } from "../components/browse/FilterSidebar";
-import type { Filters } from "../components/browse/FilterSidebar";
+import {
+  emptyFilters,
+  hasActiveFilters,
+  type Filters,
+} from "../components/browse/FilterSidebar";
 import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
@@ -47,11 +51,7 @@ export function BrowsePage({
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [sortBy, setSortBy] = useState<SortOption>("relevant");
-  const [filters, setFilters] = useState<Filters>({
-    categories: [],
-    locations: [],
-    minRating: 0,
-  });
+  const [filters, setFilters] = useState<Filters>(emptyFilters);
   const [mobileDraftFilters, setMobileDraftFilters] = useState<Filters>(filters);
   const [catalog, setCatalog] = useState<BrowseSkillCardModel[]>([]);
   const [catalogLoading, setCatalogLoading] = useState(true);
@@ -165,12 +165,11 @@ export function BrowsePage({
   };
 
   const resetMobileFilters = () => {
-    setMobileDraftFilters({
-      categories: [],
-      locations: [],
-      minRating: 0,
-    });
+    setMobileDraftFilters(emptyFilters);
   };
+
+  const filtersActive = hasActiveFilters(filters, searchQuery);
+  const mobileDraftActive = hasActiveFilters(mobileDraftFilters);
 
   const applyMobileFilters = () => {
     setFilters(mobileDraftFilters);
@@ -318,7 +317,7 @@ export function BrowsePage({
                 <p className="mb-2 text-xl text-muted-foreground">
                   {catalog.length === 0 ? b.emptyCatalog : b.noSkillsTitle}
                 </p>
-                {catalog.length > 0 ? (
+                {catalog.length > 0 && filtersActive ? (
                   <>
                     <p className="text-muted-foreground">{b.noSkillsHint}</p>
                     <Button
@@ -326,7 +325,7 @@ export function BrowsePage({
                       variant="outline"
                       className="mt-4"
                       onClick={() => {
-                        setFilters({ categories: [], locations: [], minRating: 0 });
+                        setFilters(emptyFilters);
                         setSearchQuery("");
                         setSortBy("relevant");
                         setCurrentPage(1);
@@ -335,6 +334,8 @@ export function BrowsePage({
                       {t.filter.clearAll}
                     </Button>
                   </>
+                ) : catalog.length > 0 ? (
+                  <p className="text-muted-foreground">{b.noSkillsHint}</p>
                 ) : null}
               </div>
             )}
@@ -406,13 +407,25 @@ export function BrowsePage({
                 showClearButton={false}
               />
             </div>
-            <div className="mt-3 grid grid-cols-2 gap-3 border-t border-border pt-3">
-              <Button type="button" variant="outline" onClick={resetMobileFilters}>
-                {t.filter.clearAll}
-              </Button>
+            <div
+              className={
+                mobileDraftActive
+                  ? "mt-3 grid grid-cols-2 gap-3 border-t border-border pt-3"
+                  : "mt-3 border-t border-border pt-3"
+              }
+            >
+              {mobileDraftActive ? (
+                <Button type="button" variant="outline" onClick={resetMobileFilters}>
+                  {t.filter.clearAll}
+                </Button>
+              ) : null}
               <Button
                 type="button"
-                className="bg-gradient-to-r from-blue-500 to-purple-600 text-white"
+                className={
+                  mobileDraftActive
+                    ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white"
+                    : "w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white"
+                }
                 onClick={applyMobileFilters}
               >
                 Uygula

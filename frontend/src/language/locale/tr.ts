@@ -928,11 +928,11 @@ export const tr: Translation = {
     errorLoadFailed: "Profil yüklenemedi.",
     errorSaveFailed: "Profil kaydedilemedi.",
     photoHint:
-      "Profil fotoğrafı için kamera simgesine tıklayın (JPEG/PNG/WebP, en fazla 2 MB).",
+      "Profil fotoğrafı için kamera simgesine tıklayın (JPEG/PNG/WebP, en fazla 4 MB).",
     /** Erişilebilirlik: sadece kamera butonu */
     photoChangeAria: "Profil fotoğrafı yükle veya değiştir",
     photoRemove: "Profil fotoğrafını kaldır",
-    photoTooLarge: "Dosya çok büyük. En fazla 2 MB olan bir görsel seçin.",
+    photoTooLarge: "Dosya çok büyük. En fazla 4 MB olan bir görsel seçin.",
     photoInvalidType: "Lütfen bir görsel dosyası seçin (JPEG, PNG, WebP veya GIF).",
     fullName: "Ad soyad *",
     email: "E-posta *",
