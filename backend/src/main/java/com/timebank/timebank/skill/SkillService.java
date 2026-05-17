@@ -104,6 +104,14 @@ public class SkillService {
         if (level != null) {
             skill.setLevel(level);
         }
+        if (req.getSessionTypes() != null) {
+            skill.setSessionTypes(normalizeSessionTypes(req.getSessionTypes()));
+            skill.setInPersonLocation(blankToNull(req.getInPersonLocation()));
+            skill.setAvailableDays(normalizeAvailableDays(req.getAvailableDays()));
+            skill.setAvailableFrom(normalizeTime(req.getAvailableFrom()));
+            skill.setAvailableUntil(normalizeTime(req.getAvailableUntil()));
+            validateAvailabilityRules(skill);
+        }
         skill.setCoverImageUrl(
                 SkillCoverImageUrlBuilder.fromSkillContent(
                         skill.getTitle(),

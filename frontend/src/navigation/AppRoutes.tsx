@@ -95,6 +95,13 @@ function AppRoutesContent() {
     [isAuthenticated, navigate],
   );
 
+  const openEditSkill = useCallback(
+    (skillId: string) => {
+      navigate(PATHS.editSkill(skillId));
+    },
+    [navigate],
+  );
+
   return (
     <Routes>
       <Route
@@ -196,12 +203,21 @@ function AppRoutesContent() {
             <ProfilePage
               onNavigate={onPage}
               onOpenSkillDetail={(id) => navigate(PATHS.skill(id))}
+              onEditSkill={openEditSkill}
             />
           </ProtectedRoute>
         }
       />
       <Route
         path={PATHS.addSkill}
+        element={
+          <ProtectedRoute>
+            <AddSkillPage onNavigate={onPage} />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/edit-skill/:skillId"
         element={
           <ProtectedRoute>
             <AddSkillPage onNavigate={onPage} />

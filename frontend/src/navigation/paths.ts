@@ -8,6 +8,7 @@ export const PATHS = {
   profile: "/profile",
   howItWorks: "/how-it-works",
   addSkill: "/add-skill",
+  editSkill: (id: string) => `/edit-skill/${id}`,
   pastSessions: "/past-sessions",
   editProfile: "/edit-profile",
   settings: "/settings",

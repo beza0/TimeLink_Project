@@ -14,92 +14,31 @@ import {
 import { Checkbox } from "../components/ui/checkbox";
 import { Badge } from "../components/ui/badge";
 import { X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import type { PageType } from "../App";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useAuth } from "../contexts/AuthContext";
-import type { Messages } from "../language";
-import { createSkill } from "../api/skills";
+import { createSkill, fetchSkillById, updateSkill } from "../api/skills";
 import { ApiError } from "../api/client";
 import { apiErrorDisplayMessage } from "../api/client";
 import { SearchableCombobox } from "../components/common/SearchableCombobox";
 import { locationOptions } from "../data/profilePicklists";
+import {
+  SKILL_CATEGORY_KEYS,
+  SKILL_CATEGORY_OTHER,
+  SKILL_DAY_KEYS,
+  buildSkillDescription,
+  skillDtoToFormValues,
+} from "../lib/skillForm";
 
 interface AddSkillPageProps {
   onNavigate?: (page: PageType) => void;
 }
 
-const CATEGORY_KEYS = [
-  "Sports",
-  "Arts",
-  "Languages",
-  "Programming",
-  "Music",
-  "Cooking",
-  "Photography",
-  "Writing",
-  "Design",
-] as const;
-
-/** Dropdown’da “Diğer”; API’ye gönderilmez, custom metin kullanılır */
-const CATEGORY_OTHER = "Other";
-
-const DAY_KEYS = [
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-  "Sunday",
-] as const;
-
-function buildDescription(
-  base: string,
-  a: Messages["addSkill"],
-  opts: {
-    locationType: string[];
-    locationText: string;
-    selectedDays: string[];
-    dayLabels: string[];
-    startTime: string;
-    endTime: string;
-    tags: string[];
-  },
-): string {
-  const lines: string[] = [];
-  if (opts.locationType.length > 0) {
-    lines.push(
-      `${a.sessionType}: ${opts.locationType.join(", ")}`,
-    );
-  }
-  if (opts.locationText.trim()) {
-    lines.push(`${a.location}: ${opts.locationText.trim()}`);
-  }
-  if (opts.selectedDays.length > 0) {
-    const labelByDay = new Map<string, string>(
-      DAY_KEYS.map((k, i) => [k, opts.dayLabels[i] ?? k]),
-    );
-    const dayPart = opts.selectedDays
-      .map((d) => labelByDay.get(d) ?? d)
-      .join(", ");
-    lines.push(`${a.availableDays}: ${dayPart}`);
-  }
-  if (opts.startTime || opts.endTime) {
-    lines.push(
-      `${a.availableFrom}–${a.availableUntil}: ${opts.startTime || "—"} – ${opts.endTime || "—"}`,
-    );
-  }
-  if (opts.tags.length > 0) {
-    lines.push(`${a.tags}: ${opts.tags.join(", ")}`);
-  }
-  const trimmed = base.trim();
-  if (lines.length === 0) return trimmed;
-  if (!trimmed) return lines.join("\n");
-  return `${trimmed}\n\n———\n${lines.join("\n")}`;
-}
-
 export function AddSkillPage({ onNavigate }: AddSkillPageProps) {
+  const { skillId } = useParams<{ skillId?: string }>();
+  const isEdit = Boolean(skillId);
   const { t } = useLanguage();
   const a = t.addSkill;
   const catLabels = t.browse.categoryLabels;
@@ -120,8 +59,49 @@ export function AddSkillPage({ onNavigate }: AddSkillPageProps) {
   const [locationText, setLocationText] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
+  const [durationMinutes, setDurationMinutes] = useState(60);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [loadingSkill, setLoadingSkill] = useState(isEdit);
+
+  useEffect(() => {
+    if (!isEdit || !skillId || !token) {
+      setLoadingSkill(false);
+      return;
+    }
+    let cancelled = false;
+    setLoadingSkill(true);
+    setError(null);
+    void (async () => {
+      try {
+        const skill = await fetchSkillById(skillId);
+        if (cancelled) return;
+        const values = skillDtoToFormValues(skill, a);
+        setTitle(values.title);
+        setCategory(values.category);
+        setCustomCategory(values.customCategory);
+        setDescription(values.description);
+        setLevel(values.level);
+        setSelectedDays(values.selectedDays);
+        setTags(values.tags);
+        setLocationType(values.locationType);
+        setLocationText(values.locationText);
+        setStartTime(values.startTime);
+        setEndTime(values.endTime);
+        setDurationMinutes(skill.durationMinutes > 0 ? skill.durationMinutes : 60);
+      } catch (err) {
+        if (!cancelled) {
+          setError(apiErrorDisplayMessage(err, a.errorLoad));
+        }
+      } finally {
+        if (!cancelled) setLoadingSkill(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- form labels only affect legacy meta parse
+  }, [isEdit, skillId, token]);
 
   const toggleDay = (day: string) => {
     setSelectedDays((prev) =>
@@ -162,8 +142,8 @@ export function AddSkillPage({ onNavigate }: AddSkillPageProps) {
       return;
     }
     const resolvedCategory =
-      category === CATEGORY_OTHER ? customCategory.trim() : category;
-    if (category === CATEGORY_OTHER) {
+      category === SKILL_CATEGORY_OTHER ? customCategory.trim() : category;
+    if (category === SKILL_CATEGORY_OTHER) {
       if (!resolvedCategory) {
         setError(a.validationCategoryCustom);
         return;
@@ -198,7 +178,7 @@ export function AddSkillPage({ onNavigate }: AddSkillPageProps) {
       return;
     }
 
-    const fullDescription = buildDescription(description, a, {
+    const fullDescription = buildSkillDescription(description, a, {
       locationType,
       locationText,
       selectedDays,
@@ -213,41 +193,54 @@ export function AddSkillPage({ onNavigate }: AddSkillPageProps) {
       return;
     }
 
+    const payload = {
+      title: title.trim(),
+      description: fullDescription,
+      durationMinutes,
+      category: resolvedCategory,
+      level,
+      sessionTypes: locationType,
+      inPersonLocation: locationType.includes("in-person")
+        ? locationText.trim()
+        : null,
+      availableDays: selectedDays.map((d) => d.toUpperCase()),
+      availableFrom: startTime,
+      availableUntil: endTime,
+    };
+
     setLoading(true);
     try {
-      await createSkill(token, {
-        title: title.trim(),
-        description: fullDescription,
-        durationMinutes: 60,
-        category: resolvedCategory,
-        level,
-        sessionTypes: locationType,
-        inPersonLocation: locationType.includes("in-person")
-          ? locationText.trim()
-          : null,
-        availableDays: selectedDays.map((d) => d.toUpperCase()),
-        availableFrom: startTime,
-        availableUntil: endTime,
-      });
+      if (isEdit && skillId) {
+        await updateSkill(token, skillId, payload);
+      } else {
+        await createSkill(token, payload);
+      }
       onNavigate?.("profile");
     } catch (err) {
       if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
         setError(a.errorNoAuth);
         return;
       }
-      setError(apiErrorDisplayMessage(err, a.errorPublish));
+      setError(
+        apiErrorDisplayMessage(err, isEdit ? a.errorSave : a.errorPublish),
+      );
     } finally {
       setLoading(false);
     }
   };
+
+  const pageTitle = isEdit ? a.editTitle : a.title;
+  const pageSubtitle = isEdit ? a.editSubtitle : a.subtitle;
+  const submitLabel = isEdit ? a.saveChanges : a.publish;
+  const cancelTarget: PageType = isEdit ? "profile" : "dashboard";
 
   return (
     <PageLayout onNavigate={onNavigate}>
       <div className="pt-24 pb-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto">
           <div className="mb-8">
-            <h1 className="mb-2 text-3xl text-foreground">{a.title}</h1>
-            <p className="text-muted-foreground">{a.subtitle}</p>
+            <h1 className="mb-2 text-3xl text-foreground">{pageTitle}</h1>
+            <p className="text-muted-foreground">{pageSubtitle}</p>
           </div>
 
           <Card className="rounded-2xl border-0 p-8 shadow-lg">
@@ -259,223 +252,229 @@ export function AddSkillPage({ onNavigate }: AddSkillPageProps) {
                 {error}
               </p>
             ) : null}
-            <form className="space-y-6" onSubmit={handleSubmit}>
-              <div>
-                <Label htmlFor="title">{a.skillTitle}</Label>
-                <Input
-                  id="title"
-                  value={title}
-                  onChange={(ev) => setTitle(ev.target.value)}
-                  placeholder={a.skillTitlePh}
-                  className="mt-2"
-                  autoComplete="off"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="category">{a.category}</Label>
-                <Select
-                  value={category || undefined}
-                  onValueChange={(v) => {
-                    setCategory(v);
-                    if (v !== CATEGORY_OTHER) setCustomCategory("");
-                  }}
-                >
-                  <SelectTrigger id="category" className="mt-2">
-                    <SelectValue placeholder={a.selectCategory} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {CATEGORY_KEYS.map((cat) => (
-                      <SelectItem key={cat} value={cat}>
-                        {catLabels[cat] ?? cat}
-                      </SelectItem>
-                    ))}
-                    <SelectItem value={CATEGORY_OTHER}>
-                      {a.categoryOther}
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-                {category === CATEGORY_OTHER ? (
-                  <div className="mt-3">
-                    <Label htmlFor="custom-category">{a.categoryCustom}</Label>
-                    <Input
-                      id="custom-category"
-                      value={customCategory}
-                      onChange={(ev) => setCustomCategory(ev.target.value)}
-                      placeholder={a.categoryCustomPh}
-                      className="mt-2"
-                      maxLength={120}
-                      autoComplete="off"
-                    />
-                  </div>
-                ) : null}
-              </div>
-
-              <div>
-                <Label htmlFor="description">{a.description}</Label>
-                <Textarea
-                  id="description"
-                  value={description}
-                  onChange={(ev) => setDescription(ev.target.value)}
-                  placeholder={a.descriptionPh}
-                  className="mt-2 min-h-32"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="level">{a.level}</Label>
-                <Select value={level || undefined} onValueChange={setLevel}>
-                  <SelectTrigger id="level" className="mt-2">
-                    <SelectValue placeholder={a.selectLevel} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="beginner">{a.levelBeginner}</SelectItem>
-                    <SelectItem value="intermediate">
-                      {a.levelIntermediate}
-                    </SelectItem>
-                    <SelectItem value="advanced">{a.levelAdvanced}</SelectItem>
-                    <SelectItem value="expert">{a.levelExpert}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label>{a.sessionType}</Label>
-                <div className="flex gap-4 mt-2">
-                  <div className="flex items-center gap-2">
-                    <Checkbox
-                      id="online"
-                      checked={locationType.includes("online")}
-                      onCheckedChange={() => toggleLocationType("online")}
-                    />
-                    <label htmlFor="online" className="text-sm cursor-pointer">
-                      {a.online}
-                    </label>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Checkbox
-                      id="in-person"
-                      checked={locationType.includes("in-person")}
-                      onCheckedChange={() => toggleLocationType("in-person")}
-                    />
-                    <label
-                      htmlFor="in-person"
-                      className="text-sm cursor-pointer"
-                    >
-                      {a.inPerson}
-                    </label>
-                  </div>
-                </div>
-              </div>
-
-              {locationType.includes("in-person") && (
+            {loadingSkill ? (
+              <p className="text-center text-muted-foreground py-12">
+                {t.common.loading}
+              </p>
+            ) : (
+              <form className="space-y-6" onSubmit={handleSubmit}>
                 <div>
-                  <Label htmlFor="location">{a.location}</Label>
-                  <SearchableCombobox
+                  <Label htmlFor="title">{a.skillTitle}</Label>
+                  <Input
+                    id="title"
+                    value={title}
+                    onChange={(ev) => setTitle(ev.target.value)}
+                    placeholder={a.skillTitlePh}
                     className="mt-2"
-                    value={locationText}
-                    onChange={setLocationText}
-                    options={turkeyLocationOptions}
-                    placeholder={a.locationPh}
-                    searchPlaceholder={a.locationPh}
-                    emptyText={a.locationEmpty}
+                    autoComplete="off"
                   />
                 </div>
-              )}
 
-              <div>
-                <Label>{a.availableDays}</Label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-2">
-                  {DAY_KEYS.map((dayKey, i) => (
-                    <div key={dayKey} className="flex items-center gap-2">
-                      <Checkbox
-                        id={dayKey}
-                        checked={selectedDays.includes(dayKey)}
-                        onCheckedChange={() => toggleDay(dayKey)}
+                <div>
+                  <Label htmlFor="category">{a.category}</Label>
+                  <Select
+                    value={category || undefined}
+                    onValueChange={(v) => {
+                      setCategory(v);
+                      if (v !== SKILL_CATEGORY_OTHER) setCustomCategory("");
+                    }}
+                  >
+                    <SelectTrigger id="category" className="mt-2">
+                      <SelectValue placeholder={a.selectCategory} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {SKILL_CATEGORY_KEYS.map((cat) => (
+                        <SelectItem key={cat} value={cat}>
+                          {catLabels[cat] ?? cat}
+                        </SelectItem>
+                      ))}
+                      <SelectItem value={SKILL_CATEGORY_OTHER}>
+                        {a.categoryOther}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {category === SKILL_CATEGORY_OTHER ? (
+                    <div className="mt-3">
+                      <Label htmlFor="custom-category">{a.categoryCustom}</Label>
+                      <Input
+                        id="custom-category"
+                        value={customCategory}
+                        onChange={(ev) => setCustomCategory(ev.target.value)}
+                        placeholder={a.categoryCustomPh}
+                        className="mt-2"
+                        maxLength={120}
+                        autoComplete="off"
                       />
-                      <label htmlFor={dayKey} className="text-sm cursor-pointer">
-                        {a.days[i]}
+                    </div>
+                  ) : null}
+                </div>
+
+                <div>
+                  <Label htmlFor="description">{a.description}</Label>
+                  <Textarea
+                    id="description"
+                    value={description}
+                    onChange={(ev) => setDescription(ev.target.value)}
+                    placeholder={a.descriptionPh}
+                    className="mt-2 min-h-32"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="level">{a.level}</Label>
+                  <Select value={level || undefined} onValueChange={setLevel}>
+                    <SelectTrigger id="level" className="mt-2">
+                      <SelectValue placeholder={a.selectLevel} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="beginner">{a.levelBeginner}</SelectItem>
+                      <SelectItem value="intermediate">
+                        {a.levelIntermediate}
+                      </SelectItem>
+                      <SelectItem value="advanced">{a.levelAdvanced}</SelectItem>
+                      <SelectItem value="expert">{a.levelExpert}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label>{a.sessionType}</Label>
+                  <div className="flex gap-4 mt-2">
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id="online"
+                        checked={locationType.includes("online")}
+                        onCheckedChange={() => toggleLocationType("online")}
+                      />
+                      <label htmlFor="online" className="text-sm cursor-pointer">
+                        {a.online}
                       </label>
                     </div>
-                  ))}
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id="in-person"
+                        checked={locationType.includes("in-person")}
+                        onCheckedChange={() => toggleLocationType("in-person")}
+                      />
+                      <label
+                        htmlFor="in-person"
+                        className="text-sm cursor-pointer"
+                      >
+                        {a.inPerson}
+                      </label>
+                    </div>
+                  </div>
                 </div>
-              </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="start-time">{a.availableFrom}</Label>
-                  <Input
-                    id="start-time"
-                    type="time"
-                    value={startTime}
-                    onChange={(ev) => setStartTime(ev.target.value)}
-                    className="mt-2"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="end-time">{a.availableUntil}</Label>
-                  <Input
-                    id="end-time"
-                    type="time"
-                    value={endTime}
-                    onChange={(ev) => setEndTime(ev.target.value)}
-                    className="mt-2"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="tags">{a.tags}</Label>
-                <div className="flex gap-2 mt-2">
-                  <Input
-                    id="tags"
-                    value={currentTag}
-                    onChange={(e) => setCurrentTag(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        addTag();
-                      }
-                    }}
-                    placeholder={a.tagsPh}
-                  />
-                  <Button type="button" onClick={addTag}>
-                    {a.add}
-                  </Button>
-                </div>
-                {tags.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mt-3">
-                    {tags.map((tag) => (
-                      <Badge key={tag} variant="secondary" className="gap-1">
-                        {tag}
-                        <button type="button" onClick={() => removeTag(tag)}>
-                          <X className="w-3 h-3" />
-                        </button>
-                      </Badge>
-                    ))}
+                {locationType.includes("in-person") && (
+                  <div>
+                    <Label htmlFor="location">{a.location}</Label>
+                    <SearchableCombobox
+                      className="mt-2"
+                      value={locationText}
+                      onChange={setLocationText}
+                      options={turkeyLocationOptions}
+                      placeholder={a.locationPh}
+                      searchPlaceholder={a.locationPh}
+                      emptyText={a.locationEmpty}
+                    />
                   </div>
                 )}
-              </div>
 
-              <div className="flex gap-4 pt-6">
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="flex-1"
-                  onClick={() => onNavigate?.("dashboard")}
-                  disabled={loading}
-                >
-                  {t.common.cancel}
-                </Button>
-                <Button
-                  type="submit"
-                  className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 text-white"
-                  disabled={loading}
-                >
-                  {loading ? t.common.loading : a.publish}
-                </Button>
-              </div>
-            </form>
+                <div>
+                  <Label>{a.availableDays}</Label>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-2">
+                    {SKILL_DAY_KEYS.map((dayKey, i) => (
+                      <div key={dayKey} className="flex items-center gap-2">
+                        <Checkbox
+                          id={dayKey}
+                          checked={selectedDays.includes(dayKey)}
+                          onCheckedChange={() => toggleDay(dayKey)}
+                        />
+                        <label htmlFor={dayKey} className="text-sm cursor-pointer">
+                          {a.days[i]}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="start-time">{a.availableFrom}</Label>
+                    <Input
+                      id="start-time"
+                      type="time"
+                      value={startTime}
+                      onChange={(ev) => setStartTime(ev.target.value)}
+                      className="mt-2"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="end-time">{a.availableUntil}</Label>
+                    <Input
+                      id="end-time"
+                      type="time"
+                      value={endTime}
+                      onChange={(ev) => setEndTime(ev.target.value)}
+                      className="mt-2"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="tags">{a.tags}</Label>
+                  <div className="flex gap-2 mt-2">
+                    <Input
+                      id="tags"
+                      value={currentTag}
+                      onChange={(e) => setCurrentTag(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          addTag();
+                        }
+                      }}
+                      placeholder={a.tagsPh}
+                    />
+                    <Button type="button" onClick={addTag}>
+                      {a.add}
+                    </Button>
+                  </div>
+                  {tags.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      {tags.map((tag) => (
+                        <Badge key={tag} variant="secondary" className="gap-1">
+                          {tag}
+                          <button type="button" onClick={() => removeTag(tag)}>
+                            <X className="w-3 h-3" />
+                          </button>
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex gap-4 pt-6">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => onNavigate?.(cancelTarget)}
+                    disabled={loading}
+                  >
+                    {t.common.cancel}
+                  </Button>
+                  <Button
+                    type="submit"
+                    className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 text-white"
+                    disabled={loading || loadingSkill}
+                  >
+                    {loading ? t.common.loading : submitLabel}
+                  </Button>
+                </div>
+              </form>
+            )}
           </Card>
         </div>
       </div>

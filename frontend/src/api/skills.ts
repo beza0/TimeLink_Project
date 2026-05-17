@@ -55,3 +55,15 @@ export function createSkill(token: string, body: CreateSkillBody) {
     body: JSON.stringify(body),
   });
 }
+
+export function updateSkill(
+  token: string,
+  skillId: string,
+  body: CreateSkillBody & { durationMinutes: number },
+) {
+  return apiFetch<SkillDto>(`/api/skills/${skillId}`, {
+    method: "PUT",
+    token,
+    body: JSON.stringify(body),
+  });
+}

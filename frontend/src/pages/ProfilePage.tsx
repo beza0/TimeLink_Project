@@ -52,6 +52,7 @@ import {
 interface ProfilePageProps {
   onNavigate?: (page: PageType) => void;
   onOpenSkillDetail?: (skillId: string) => void;
+  onEditSkill?: (skillId: string) => void;
 }
 
 function formatCreditMinutes(minutes: number, locale: string): string {
@@ -187,6 +188,7 @@ function fallbackAvailabilityFromDescription(
 export function ProfilePage({
   onNavigate,
   onOpenSkillDetail,
+  onEditSkill,
 }: ProfilePageProps) {
   const { t, locale } = useLanguage();
   const p = t.profile;
@@ -785,7 +787,7 @@ export function ProfilePage({
                               size="sm"
                               variant="outline"
                               className="flex-1"
-                              onClick={() => onNavigate?.("add-skill")}
+                              onClick={() => onEditSkill?.(skill.id)}
                             >
                               {t.common.edit}
                             </Button>
