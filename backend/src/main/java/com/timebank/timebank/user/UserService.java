@@ -149,7 +149,7 @@ public class UserService {
         PendingSignup saved = pendingSignupRepository.save(pending);
 
         if (registrationMailService.isMailDeliveryEnabled()) {
-            registrationMailService.sendVerificationCodeAsync(fullName, email, code);
+            registrationMailService.sendVerificationCode(fullName, email, code);
         } else {
             log.warn(
                     "SMTP kapalı — kod e-postayla gitmez. e-posta={} doğrulama_kodu={} (API/docker loglarına bakın; üretimde SMTP açın).",
@@ -266,7 +266,7 @@ public class UserService {
             p.setExpiresAt(Instant.now().plus(48, ChronoUnit.HOURS));
             pendingSignupRepository.save(p);
             if (smtp) {
-                registrationMailService.sendVerificationCodeAsync(p.getFullName(), email, newCode);
+                registrationMailService.sendVerificationCode(p.getFullName(), email, newCode);
             } else {
                 log.warn("SMTP kapalı — yeniden gönderilen kod. e-posta={} kod={}", email, newCode);
             }

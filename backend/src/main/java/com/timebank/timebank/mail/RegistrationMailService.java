@@ -138,9 +138,17 @@ public class RegistrationMailService {
             mailSender.send(msg);
             log.info("Doğrulama e-postası gönderildi: {}", email);
         } catch (Exception e) {
-            log.error("Doğrulama e-postası gönderilemedi ({})", email, e);
+            String host = environment.getProperty("spring.mail.host", "(yok)");
+            log.error(
+                    "Doğrulama e-postası gönderilemedi: alici={}, smtpHost={}, from={}, hata={}",
+                    email,
+                    host,
+                    from,
+                    e.getMessage(),
+                    e
+            );
             throw new IllegalStateException(
-                    "Doğrulama e-postası gönderilemedi. SMTP ayarlarını kontrol edin veya tekrar deneyin.",
+                    "Doğrulama e-postası gönderilemedi. SMTP ayarlarını (Brevo gönderici, SMTP key, APP_MAIL_FROM) kontrol edin.",
                     e
             );
         }
@@ -213,6 +221,20 @@ public class RegistrationMailService {
         } catch (Exception e) {
             log.warn("Hoş geldin e-postası gönderilemedi ({}): {}", to, e.getMessage());
         }
+    }
+
+    public boolean isMailFromConfigured() {
+        String from = environment.getProperty("app.mail.from");
+        if (from != null && !from.isBlank()) {
+            return true;
+        }
+        String user = environment.getProperty("spring.mail.username");
+        return user != null && !user.isBlank();
+    }
+
+    public boolean isMailHostConfigured() {
+        String host = environment.getProperty("spring.mail.host");
+        return host != null && !host.isBlank();
     }
 
     private String fromAddress() {

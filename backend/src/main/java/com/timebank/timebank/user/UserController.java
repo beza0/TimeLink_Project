@@ -14,6 +14,7 @@ import com.timebank.timebank.user.dto.UserDashboardResponse;
 import com.timebank.timebank.user.dto.UserBlockStateResponse;
 import com.timebank.timebank.user.dto.PublicUserProfileResponse;
 import com.timebank.timebank.user.dto.UserProfileResponse;
+import com.timebank.timebank.user.dto.MailDeliveryStatusResponse;
 import com.timebank.timebank.user.dto.UserResponse;
 import com.timebank.timebank.mail.RegistrationMailService;
 import com.timebank.timebank.user.dto.RegistrationOutcome;
@@ -72,6 +73,18 @@ public class UserController {
     ) {
         LoginResponse response = userService.verifyEmailWithCode(req.getEmail(), req.getCode());
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/auth/mail-status")
+    public ResponseEntity<MailDeliveryStatusResponse> mailStatus() {
+        return ResponseEntity.ok(
+                new MailDeliveryStatusResponse(
+                        registrationMailService.isMailDeliveryEnabled(),
+                        registrationMailService.isLocalCaptureSmtp(),
+                        registrationMailService.isMailHostConfigured(),
+                        registrationMailService.isMailFromConfigured()
+                )
+        );
     }
 
     @PostMapping("/auth/resend-verification")
