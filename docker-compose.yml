@@ -4,9 +4,8 @@
 #
 # Tüm hesapları DB'den silmek (sıfırdan kayıt): ./scripts/reset-timebank-data.sh  (db çalışırken)
 #
-# E-posta: SPRING_MAIL_* = gönderici SMTP (tek relay hesabı). Alıcı = kayıtta yazılan her e-posta (uygulama zaten böyle).
-# cp .env.example .env → relay şifresini doldurun. Yayında SendGrid/SES vb. önerilir (.env.example içinde not).
-# Yerel Mailpit: .env ile SPRING_MAIL_HOST=mailpit, PORT=1025, auth=false (.env.example).
+# E-posta: .env içinde Brevo (canlı + yerel test). Render’da aynı SPRING_MAIL_* değerleri.
+# Yerel Mailpit: SPRING_MAIL_HOST=mailpit, PORT=1025, auth=false (.env.example).
 
 services:
   mailpit:
@@ -50,7 +49,7 @@ services:
       JWT_SECRET: ${JWT_SECRET:-local-dev-jwt-secret-at-least-32-chars-long}
       SPRING_MAIL_USERNAME: ${SPRING_MAIL_USERNAME:-}
       SPRING_MAIL_PASSWORD: ${SPRING_MAIL_PASSWORD:-}
-      SPRING_MAIL_HOST: ${SPRING_MAIL_HOST:-smtp.gmail.com}
+      SPRING_MAIL_HOST: ${SPRING_MAIL_HOST:-smtp-relay.brevo.com}
       SPRING_MAIL_PORT: ${SPRING_MAIL_PORT:-587}
       SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: ${SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH:-true}
       SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: ${SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE:-true}
