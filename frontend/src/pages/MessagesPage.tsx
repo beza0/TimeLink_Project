@@ -1272,12 +1272,12 @@ export function MessagesPage({ onNavigate, onViewUserProfile }: MessagesPageProp
   };
 
   return (
-    <PageLayout onNavigate={onNavigate}>
-      <div className="pt-20 pb-4 px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto h-[calc(min(100vh,_100dvh)-7rem)] min-h-0 w-full max-w-7xl">
-          <Card className="flex h-full min-h-0 flex-row gap-0 overflow-hidden rounded-2xl border-0 shadow-lg">
+    <PageLayout hideFooter onNavigate={onNavigate}>
+      <div className="flex min-h-0 flex-1 flex-col px-3 pb-3 pt-20 sm:px-6 sm:pb-4 lg:px-8">
+        <div className="mx-auto flex min-h-0 w-full max-w-7xl flex-1 flex-col">
+          <Card className="flex min-h-0 flex-1 flex-row gap-0 overflow-hidden rounded-2xl border-0 shadow-lg">
             <div className={cn(
-              "flex min-h-0 w-full flex-col border-r border-border sm:w-96 sm:shrink-0",
+              "flex min-h-0 w-full flex-1 flex-col border-r border-border sm:w-96 sm:shrink-0",
               selectedOtherUserId ? "hidden sm:flex" : "flex",
             )}>
               <div className="border-b border-border p-4">
