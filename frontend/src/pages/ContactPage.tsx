@@ -52,6 +52,8 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
         msg = detail ? `${c.errorUnavailable}\n${detail}` : c.errorUnavailable;
       } else if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
         msg = c.errorSendAuth;
+      } else if (err instanceof ApiError && err.status === 404) {
+        msg = c.errorSendNotFound;
       } else {
         msg = contactFormErrorMessage(err, fallback);
       }

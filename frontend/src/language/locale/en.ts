@@ -762,6 +762,8 @@ export const en = {
     errorSend: "Your message could not be sent. Please try again or email us directly.",
     errorSendAuth:
       "The server blocked this request (not an account sign-in issue). If you deploy the frontend yourself, set VITE_API_BASE_URL to the API host only (no /api suffix) or configure your host to forward /api to the backend. You can still email us below.",
+    errorSendNotFound:
+      "The contact endpoint was not found (404). Rebuild the static site with VITE_API_BASE_URL pointing to your Spring API, or open the site from a host that forwards /api to the backend. You can still email us below.",
     errorUnavailable:
       "The site cannot send email right now (SMTP not ready or send failed). Check that Render has SPRING_MAIL_* and APP_MAIL_FROM set. You can still write to tiempos.site@gmail.com.",
     faqSectionTitle: "Looking for quick answers?",

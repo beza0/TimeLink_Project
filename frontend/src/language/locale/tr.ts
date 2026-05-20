@@ -763,6 +763,8 @@ export const tr: Translation = {
     errorSend: "Mesaj gönderilemedi. Lütfen tekrar deneyin veya doğrudan e-posta yazın.",
     errorSendAuth:
       "Sunucu isteği reddetti (hesap girişi ile ilgili değil). Frontend’i kendiniz barındırıyorsanız VITE_API_BASE_URL yalnızca API ana makinesi olmalı (sonunda /api olmamalı) veya barındırıcıda /api trafiğinin backend’e yönlendirildiğinden emin olun. Yine de aşağıdaki e-posta adresine yazabilirsiniz.",
+    errorSendNotFound:
+      "İletişim adresi bulunamadı (404). Statik siteyi VITE_API_BASE_URL Spring API kökünü gösterecek şekilde yeniden derleyin veya /api trafiğini backend’e yönlendiren bir adres kullanın. Yine de aşağıdaki e-postaya yazabilirsiniz.",
     errorUnavailable:
       "Şu an siteden e-posta gönderilemiyor (SMTP hazır değil veya gönderim hatası). Render’da SPRING_MAIL_* ve APP_MAIL_FROM ayarlarını kontrol edin. Yine de tiempos.site@gmail.com adresine yazabilirsiniz.",
     faqSectionTitle: "Hızlı cevaplar mı arıyorsunuz?",
