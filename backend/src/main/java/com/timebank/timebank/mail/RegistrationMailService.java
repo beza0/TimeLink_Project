@@ -22,17 +22,31 @@ import java.util.Locale;
 @Service
 public class RegistrationMailService {
 
+    /** İletişim formu SMTP sonucu (HTTP 503 gövdesinde {@code code} için kullanılır). */
+    public enum ContactInquirySendStatus {
+        SENT,
+        /** Host / kullanıcı-şifre eksik veya JavaMailSender yok */
+        SMTP_NOT_READY,
+        MAIL_BEAN_MISSING,
+        INBOX_MISSING,
+        /** Sunucuya bağlanıldı; gönderim SMTP tarafından reddedildi / hata */
+        SEND_FAILED
+    }
+
     private static final Logger log = LoggerFactory.getLogger(RegistrationMailService.class);
 
     private final ObjectProvider<JavaMailSender> mailSenderProvider;
     private final Environment environment;
+    private final BrevoTransactionalContactSender brevoTransactionalContactSender;
 
     public RegistrationMailService(
             ObjectProvider<JavaMailSender> mailSenderProvider,
-            Environment environment
+            Environment environment,
+            BrevoTransactionalContactSender brevoTransactionalContactSender
     ) {
         this.mailSenderProvider = mailSenderProvider;
         this.environment = environment;
+        this.brevoTransactionalContactSender = brevoTransactionalContactSender;
     }
 
     /** SMTP ile gerçek posta gönderilebiliyor mu (doğrulama zorunlu mu)? */
@@ -115,12 +129,13 @@ public class RegistrationMailService {
     void logEffectiveMailBackend() {
         String host = environment.getProperty("spring.mail.host");
         log.info(
-                "SMTP: host={}, deliveryEnabled={}, smtpReadyForContact={}, localCapture(Mailpit)= {}, from={}",
+                "SMTP: host={}, deliveryEnabled={}, smtpReadyForContact={}, localCapture(Mailpit)= {}, from={}, brevoApiKey={}",
                 host == null || host.isBlank() ? "(none)" : host.trim(),
                 isMailDeliveryEnabled(),
                 isSmtpTransportReady(),
                 isLocalCaptureSmtp(),
-                maskFromForLog(fromAddress()));
+                maskFromForLog(fromAddress()),
+                brevoTransactionalContactSender.isConfigured() ? "yes" : "no");
         if (isMailDeliveryEnabled() && !isLocalCaptureSmtp()) {
             probeSmtpConnection();
         }
@@ -358,26 +373,17 @@ public class RegistrationMailService {
     /**
      * Web sitesi iletişim formu — gelen kutusu {@code app.contact.inbox} (varsayılan tiempos.site@gmail.com).
      * Reply-To: gönderenin e-postası.
-     *
-     * @return true SMTP ile gönderildi
      */
-    public boolean sendContactFormInquiry(String name, String replyToEmail, String subjectKey, String message) {
-        if (!isSmtpTransportReady()) {
-            log.warn(
-                    "İletişim formu: SMTP oturumu hazır değil (spring.mail.host / kimlik bilgisi veya JavaMailSender yok). replyTo={}",
-                    maskEmailForLog(replyToEmail)
-            );
-            return false;
-        }
-        JavaMailSender mailSender = mailSenderProvider.getIfAvailable();
-        if (mailSender == null) {
-            log.warn("İletişim formu: JavaMailSender yok");
-            return false;
-        }
+    public ContactInquirySendStatus sendContactFormInquiry(
+            String name,
+            String replyToEmail,
+            String subjectKey,
+            String message
+    ) {
         String inbox = environment.getProperty("app.contact.inbox", "tiempos.site@gmail.com").trim();
         if (inbox.isBlank()) {
             log.warn("İletişim formu: app.contact.inbox boş");
-            return false;
+            return ContactInquirySendStatus.INBOX_MISSING;
         }
         String from = fromAddress();
         String subjectLabel = contactSubjectLabel(subjectKey);
@@ -389,20 +395,38 @@ public class RegistrationMailService {
                         + "---\n"
                         + message + "\n"
                         + "---\n";
+        String subject = "[Tiempos Contact] " + subjectLabel;
+
+        if (brevoTransactionalContactSender.sendIfConfigured(name, replyToEmail, subject, body, inbox, from)) {
+            return ContactInquirySendStatus.SENT;
+        }
+
+        if (!isSmtpTransportReady()) {
+            log.warn(
+                    "İletişim formu: SMTP hazır değil ve Brevo API anahtarı yok/başarısız. replyTo={}",
+                    maskEmailForLog(replyToEmail)
+            );
+            return ContactInquirySendStatus.SMTP_NOT_READY;
+        }
+        JavaMailSender mailSender = mailSenderProvider.getIfAvailable();
+        if (mailSender == null) {
+            log.warn("İletişim formu: JavaMailSender yok");
+            return ContactInquirySendStatus.MAIL_BEAN_MISSING;
+        }
         try {
             var mimeMessage = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, false, "UTF-8");
             helper.setFrom(from);
             helper.setTo(inbox);
             helper.setReplyTo(replyToEmail);
-            helper.setSubject("[Tiempos Contact] " + subjectLabel);
+            helper.setSubject(subject);
             helper.setText(body, false);
             mailSender.send(mimeMessage);
-            log.info("İletişim formu e-postası gönderildi: inbox={}, replyTo={}", inbox, maskEmailForLog(replyToEmail));
-            return true;
+            log.info("İletişim formu e-postası gönderildi (SMTP): inbox={}, replyTo={}", inbox, maskEmailForLog(replyToEmail));
+            return ContactInquirySendStatus.SENT;
         } catch (Exception e) {
             log.error(
-                    "İletişim formu e-postası gönderilemedi: inbox={}, replyTo={}, from={}, hata={}",
+                    "İletişim formu e-postası gönderilemedi (SMTP): inbox={}, replyTo={}, from={}, hata={}",
                     inbox,
                     maskEmailForLog(replyToEmail),
                     maskFromForLog(from),
@@ -415,7 +439,7 @@ public class RegistrationMailService {
                         e
                 );
             }
-            return false;
+            return ContactInquirySendStatus.SEND_FAILED;
         }
     }
 

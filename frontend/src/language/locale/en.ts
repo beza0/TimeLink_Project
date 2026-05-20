@@ -765,7 +765,11 @@ export const en = {
     errorSendNotFound:
       "The contact endpoint was not found (404). Rebuild the static site with VITE_API_BASE_URL pointing to your Spring API, or open the site from a host that forwards /api to the backend. You can still email us below.",
     errorUnavailable:
-      "The site cannot send email right now (SMTP not ready or send failed). Check that Render has SPRING_MAIL_* and APP_MAIL_FROM set. You can still write to tiempos.site@gmail.com.",
+      "Email could not be sent (generic). Check SMTP on the Render API service or write to tiempos.site@gmail.com.",
+    errorSmtpNotReady:
+      "Outbound email (SMTP) is not set up on the server. On the Render API service, set SPRING_MAIL_HOST (e.g. smtp-relay.brevo.com), SPRING_MAIL_PORT=587, SPRING_MAIL_USERNAME and SPRING_MAIL_PASSWORD (from Brevo Transactional → SMTP, not the API key), STARTTLS/auth properties, and APP_MAIL_FROM with a sender verified in Brevo. Alternatively add only BREVO_API_KEY (Brevo → API keys, HTTPS) so the contact form works without SMTP. You can still email tiempos.site@gmail.com.",
+    errorSmtpSendFailed:
+      "SMTP connected but sending failed or was rejected. In Brevo: verify the sender used in APP_MAIL_FROM, use the SMTP password (xsmtpsib-…), and match SPRING_MAIL_USERNAME to the value shown in Brevo’s SMTP screen. See Render API logs for the exact error. You can still email tiempos.site@gmail.com.",
     faqSectionTitle: "Looking for quick answers?",
     faqSectionText:
       "Visit our FAQ page for answers to common questions.",

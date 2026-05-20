@@ -766,7 +766,11 @@ export const tr: Translation = {
     errorSendNotFound:
       "İletişim adresi bulunamadı (404). Statik siteyi VITE_API_BASE_URL Spring API kökünü gösterecek şekilde yeniden derleyin veya /api trafiğini backend’e yönlendiren bir adres kullanın. Yine de aşağıdaki e-postaya yazabilirsiniz.",
     errorUnavailable:
-      "Şu an siteden e-posta gönderilemiyor (SMTP hazır değil veya gönderim hatası). Render’da SPRING_MAIL_* ve APP_MAIL_FROM ayarlarını kontrol edin. Yine de tiempos.site@gmail.com adresine yazabilirsiniz.",
+      "E-posta gönderilemedi (genel). Render API servisindeki SMTP ayarlarını veya aşağıdaki adresi kullanın.",
+    errorSmtpNotReady:
+      "Sunucuda giden posta (SMTP) yapılandırması eksik. Render’da API servisine ekleyin: SPRING_MAIL_HOST (ör. smtp-relay.brevo.com), SPRING_MAIL_PORT=587, SPRING_MAIL_USERNAME ve SPRING_MAIL_PASSWORD (Brevo Transactional → SMTP’deki giriş; API key değil), STARTTLS/auth property’leri ve Brevo’da doğrulanmış bir APP_MAIL_FROM. Alternatif: yalnızca BREVO_API_KEY (Brevo → API keys, HTTPS) ekleyerek iletişim formunu SMTP olmadan çalıştırabilirsiniz. Yine de tiempos.site@gmail.com adresine yazabilirsiniz.",
+    errorSmtpSendFailed:
+      "SMTP bağlantısı kuruldu ama gönderim reddedildi veya hata verdi. Brevo’da APP_MAIL_FROM ile aynı göndericiyi doğrulayın; şifre olarak SMTP anahtarını (xsmtpsib-...) kullanın; kullanıcı adını Brevo SMTP ekranındakiyle birebir aynı yapın. Ayrıntı için Render API loglarına bakın. Yine de tiempos.site@gmail.com adresine yazabilirsiniz.",
     faqSectionTitle: "Hızlı cevaplar mı arıyorsunuz?",
     faqSectionText:
       "Yaygın soruların yanıtları için SSS sayfamıza göz atın.",

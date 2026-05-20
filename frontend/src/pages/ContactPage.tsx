@@ -9,6 +9,14 @@ import { submitContactForm, contactFormErrorMessage } from "../api/contact";
 import { ApiError } from "../api/client";
 import "../styles/contact.css";
 
+function contactForm503Code(body: unknown): string {
+  if (body && typeof body === "object" && body !== null && "code" in body) {
+    const v = (body as { code?: unknown }).code;
+    return typeof v === "string" ? v : "";
+  }
+  return "";
+}
+
 interface ContactPageProps {
   onNavigate?: (page: PageType) => void;
 }
@@ -48,8 +56,14 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
       const fallback = c.errorSend;
       let msg: string;
       if (err instanceof ApiError && err.status === 503) {
-        const detail = err.message.trim();
-        msg = detail ? `${c.errorUnavailable}\n${detail}` : c.errorUnavailable;
+        const code = contactForm503Code(err.body);
+        if (code === "smtp_send_failed") {
+          msg = c.errorSmtpSendFailed;
+        } else if (code === "smtp_not_ready") {
+          msg = c.errorSmtpNotReady;
+        } else {
+          msg = c.errorUnavailable;
+        }
       } else if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
         msg = c.errorSendAuth;
       } else if (err instanceof ApiError && err.status === 404) {

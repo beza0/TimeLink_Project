@@ -1,6 +1,7 @@
 package com.timebank.timebank.publicsite;
 
 import com.timebank.timebank.mail.RegistrationMailService;
+import com.timebank.timebank.mail.RegistrationMailService.ContactInquirySendStatus;
 import com.timebank.timebank.publicsite.dto.ContactFormRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -24,20 +25,24 @@ public class PublicContactController {
 
     @PostMapping("/contact")
     public ResponseEntity<?> submitContact(@Valid @RequestBody ContactFormRequest req) {
-        boolean sent = registrationMailService.sendContactFormInquiry(
+        ContactInquirySendStatus status = registrationMailService.sendContactFormInquiry(
                 req.getName(),
                 req.getEmail().trim(),
                 req.getSubject().trim().toLowerCase(),
                 req.getMessage().trim()
         );
-        if (!sent) {
-            return ResponseEntity
-                    .status(HttpStatus.SERVICE_UNAVAILABLE)
-                    .body(Map.of(
-                            "message",
-                            "Email delivery is not configured or failed. Please try again later."
-                    ));
+        if (status == ContactInquirySendStatus.SENT) {
+            return ResponseEntity.noContent().build();
         }
-        return ResponseEntity.noContent().build();
+        String code = status == ContactInquirySendStatus.SEND_FAILED ? "smtp_send_failed" : "smtp_not_ready";
+        String message = status == ContactInquirySendStatus.SEND_FAILED
+                ? "SMTP send failed (check sender verification and credentials)."
+                : "SMTP is not configured (missing host, credentials, or mail bean).";
+        return ResponseEntity
+                .status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(Map.of(
+                        "code", code,
+                        "message", message
+                ));
     }
 }
