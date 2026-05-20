@@ -160,8 +160,8 @@ export function PastSessionsPage({ onNavigate }: PastSessionsPageProps) {
 
   if (loading) {
     return (
-      <PageLayout onNavigate={onNavigate}>
-        <div className="pt-24 pb-12 px-4 sm:px-6 lg:px-8">
+      <PageLayout hideFooter onNavigate={onNavigate}>
+        <div className="flex min-h-0 flex-1 flex-col px-4 pt-24 sm:px-6 lg:px-8">
           <p className="text-muted-foreground">{t.common.loading}</p>
         </div>
       </PageLayout>
@@ -169,23 +169,23 @@ export function PastSessionsPage({ onNavigate }: PastSessionsPageProps) {
   }
 
   return (
-    <PageLayout onNavigate={onNavigate}>
-      <div className="pt-24 pb-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-5xl mx-auto">
+    <PageLayout hideFooter onNavigate={onNavigate}>
+      <div className="flex min-h-0 flex-1 flex-col px-3 pb-4 pt-20 sm:px-6 sm:pt-24 lg:px-8">
+        <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col min-h-0">
           <div className="mb-8">
             <h1 className="mb-2 text-3xl text-foreground">{p.title}</h1>
             <p className="text-muted-foreground">{p.subtitle}</p>
           </div>
 
           <Tabs defaultValue="all" className="space-y-6">
-            <TabsList className="rounded-xl border border-border bg-muted p-1 shadow-lg">
-              <TabsTrigger value="all" className="rounded-lg">
+            <TabsList className="grid h-auto w-full grid-cols-3 gap-1 rounded-xl border border-border bg-muted p-1 shadow-lg">
+              <TabsTrigger value="all" className="rounded-lg px-2 py-2 text-xs sm:px-3 sm:text-sm">
                 {p.tabAll}
               </TabsTrigger>
-              <TabsTrigger value="learned" className="rounded-lg">
+              <TabsTrigger value="learned" className="rounded-lg px-2 py-2 text-xs sm:px-3 sm:text-sm">
                 {p.tabLearned}
               </TabsTrigger>
-              <TabsTrigger value="taught" className="rounded-lg">
+              <TabsTrigger value="taught" className="rounded-lg px-2 py-2 text-xs sm:px-3 sm:text-sm">
                 {p.tabTaught}
               </TabsTrigger>
             </TabsList>
@@ -243,8 +243,10 @@ export function PastSessionsPage({ onNavigate }: PastSessionsPageProps) {
 
 function EmptySessions({ message }: { message: string }) {
   return (
-    <Card className="rounded-xl border border-dashed border-border bg-muted/20 p-12 text-center">
-      <p className="text-muted-foreground">{message}</p>
+    <Card className="rounded-xl border border-dashed border-border bg-muted/20 px-4 py-8 text-center sm:px-8 sm:py-12">
+      <p className="mx-auto max-w-lg text-pretty text-sm leading-relaxed text-muted-foreground sm:text-base">
+        {message}
+      </p>
     </Card>
   );
 }

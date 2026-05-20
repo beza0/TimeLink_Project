@@ -10,6 +10,7 @@ import jakarta.mail.MessagingException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -63,6 +64,36 @@ public class RegistrationMailService {
     }
 
     /**
+     * SMTP oturumu (host + gerekirse kullanıcı/şifre) gerçekten yapılandırılmış mı.
+     * {@link #isMailDeliveryEnabled()} {@code app.mail.enabled=false} iken false dönebilir; iletişim formu
+     * yalnızca buna bakar — böylece Brevo açıkken form yine çalışır.
+     */
+    public boolean isSmtpTransportReady() {
+        JavaMailSender mailSender = mailSenderProvider.getIfAvailable();
+        if (mailSender == null) {
+            return false;
+        }
+        String host = environment.getProperty("spring.mail.host");
+        if (host == null || host.isBlank()) {
+            return false;
+        }
+        boolean smtpAuth = environment.getProperty(
+                "spring.mail.properties.mail.smtp.auth",
+                Boolean.class,
+                true
+        );
+        if (!smtpAuth) {
+            return true;
+        }
+        String username = environment.getProperty("spring.mail.username");
+        String password = environment.getProperty("spring.mail.password");
+        return username != null
+                && !username.isBlank()
+                && password != null
+                && !password.isBlank();
+    }
+
+    /**
      * Yerel yakalama (Mailpit vb.): gerçek gelen kutusu değil; kod Mailpit UI veya API loglarında görünür.
      */
     public boolean isLocalCaptureSmtp() {
@@ -84,9 +115,10 @@ public class RegistrationMailService {
     void logEffectiveMailBackend() {
         String host = environment.getProperty("spring.mail.host");
         log.info(
-                "SMTP: host={}, deliveryEnabled={}, localCapture(Mailpit)= {}, from={}",
+                "SMTP: host={}, deliveryEnabled={}, smtpReadyForContact={}, localCapture(Mailpit)= {}, from={}",
                 host == null || host.isBlank() ? "(none)" : host.trim(),
                 isMailDeliveryEnabled(),
+                isSmtpTransportReady(),
                 isLocalCaptureSmtp(),
                 maskFromForLog(fromAddress()));
         if (isMailDeliveryEnabled() && !isLocalCaptureSmtp()) {
@@ -321,5 +353,83 @@ public class RegistrationMailService {
             return user.trim();
         }
         return "noreply@timelink.local";
+    }
+
+    /**
+     * Web sitesi iletişim formu — gelen kutusu {@code app.contact.inbox} (varsayılan tiempos.site@gmail.com).
+     * Reply-To: gönderenin e-postası.
+     *
+     * @return true SMTP ile gönderildi
+     */
+    public boolean sendContactFormInquiry(String name, String replyToEmail, String subjectKey, String message) {
+        if (!isSmtpTransportReady()) {
+            log.warn(
+                    "İletişim formu: SMTP oturumu hazır değil (spring.mail.host / kimlik bilgisi veya JavaMailSender yok). replyTo={}",
+                    maskEmailForLog(replyToEmail)
+            );
+            return false;
+        }
+        JavaMailSender mailSender = mailSenderProvider.getIfAvailable();
+        if (mailSender == null) {
+            log.warn("İletişim formu: JavaMailSender yok");
+            return false;
+        }
+        String inbox = environment.getProperty("app.contact.inbox", "tiempos.site@gmail.com").trim();
+        if (inbox.isBlank()) {
+            log.warn("İletişim formu: app.contact.inbox boş");
+            return false;
+        }
+        String from = fromAddress();
+        String subjectLabel = contactSubjectLabel(subjectKey);
+        String body =
+                "New message from the Tiempo contact form.\n\n"
+                        + "Name: " + name + "\n"
+                        + "Email: " + replyToEmail + "\n"
+                        + "Topic: " + subjectLabel + "\n\n"
+                        + "---\n"
+                        + message + "\n"
+                        + "---\n";
+        try {
+            var mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, false, "UTF-8");
+            helper.setFrom(from);
+            helper.setTo(inbox);
+            helper.setReplyTo(replyToEmail);
+            helper.setSubject("[Tiempo Contact] " + subjectLabel);
+            helper.setText(body, false);
+            mailSender.send(mimeMessage);
+            log.info("İletişim formu e-postası gönderildi: inbox={}, replyTo={}", inbox, maskEmailForLog(replyToEmail));
+            return true;
+        } catch (Exception e) {
+            log.error(
+                    "İletişim formu e-postası gönderilemedi: inbox={}, replyTo={}, from={}, hata={}",
+                    inbox,
+                    maskEmailForLog(replyToEmail),
+                    maskFromForLog(from),
+                    e.getMessage(),
+                    e
+            );
+            if (isStrictMailErrors()) {
+                throw new IllegalStateException(
+                        "İletişim e-postası gönderilemedi. SMTP ayarlarını kontrol edin.",
+                        e
+                );
+            }
+            return false;
+        }
+    }
+
+    private static String contactSubjectLabel(String key) {
+        if (key == null) {
+            return "Other";
+        }
+        return switch (key.toLowerCase(Locale.ROOT)) {
+            case "general" -> "General inquiry";
+            case "support" -> "Technical support";
+            case "billing" -> "Billing question";
+            case "partnership" -> "Partnership";
+            case "feedback" -> "Feedback";
+            default -> "Other";
+        };
     }
 }

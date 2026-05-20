@@ -683,9 +683,9 @@ export const en = {
     learnHour: "1 Time Credit = 1 Hour Learning",
     learnHourSub: "Spend credits to learn anything",
     bonusTitle: "New Member Bonus",
-    bonusCredits: "Get 5 Free Time Credits",
+    bonusCredits: "Get 1 Free Time Credit",
     bonusDesc:
-      "Start learning immediately when you join Tiempo. No teaching required to get started!",
+      "New members start with 1 time credit (1 hour of learning). Begin right away — no teaching required first.",
     claimBonus: "Claim Your Bonus",
     whyTitle: "Why Choose Tiempo?",
     benefits: [
@@ -716,7 +716,7 @@ export const en = {
       },
       {
         q: "How do I get my first time credits?",
-        a: "New members receive 5 starter time credits to begin learning right away. You can also start teaching to earn more credits immediately.",
+        a: "New members receive 1 free hour of time credit to begin learning right away. You can also start teaching to earn more credits immediately.",
       },
     ],
     seeAlsoTitle: "More resources",
@@ -733,20 +733,12 @@ export const en = {
     heroSubtitle:
       "Have questions? We'd love to hear from you. Send us a message and we'll respond as soon as possible.",
     infoTitle: "Contact Information",
-    infoIntro:
-      "Feel free to reach out through any of these channels. We're here to help!",
+    infoIntro: "Reach us by email — we're here to help.",
     emailTitle: "Email",
-    emailLine1: "support@timelink.local",
-    emailLine2: "hello@timelink.local",
-    phoneTitle: "Phone",
-    phoneNumber: "+1 (555) 123-4567",
-    phoneHours: "Mon–Fri 9am–6pm EST",
-    officeTitle: "Office",
-    officeLine1: "123 Learning Street",
-    officeLine2: "San Francisco, CA 94102",
+    emailAddress: "tiempos.site@gmail.com",
     responseTitle: "Response Time",
     responseText:
-      "We typically respond within 24 hours on business days. For urgent matters, please call us.",
+      "We typically respond within 24 hours on business days.",
     formTitle: "Send us a Message",
     labelName: "Full Name",
     labelEmail: "Email Address",
@@ -763,9 +755,13 @@ export const en = {
     subjectFeedback: "Feedback",
     subjectOther: "Other",
     sendButton: "Send Message",
+    sending: "Sending…",
     successTitle: "Message sent!",
     successText:
       "Thank you for contacting us. We'll get back to you soon.",
+    errorSend: "Your message could not be sent. Please try again or email us directly.",
+    errorUnavailable:
+      "The site cannot send email right now (SMTP not ready or send failed). Check that Render has SPRING_MAIL_* and APP_MAIL_FROM set. You can still write to tiempos.site@gmail.com.",
     faqSectionTitle: "Looking for quick answers?",
     faqSectionText:
       "Visit our FAQ page for answers to common questions.",
@@ -860,8 +856,8 @@ export const en = {
     rateOnProfileHint:
       "Opens your Profile on the Learning tab, where you can rate this session.",
     emptyAll: "No sessions in your history yet.",
-    emptyLearned: "You have not completed any sessions as a learner yet.",
-    emptyTaught: "You have not completed any sessions as an instructor yet.",
+    emptyLearned: "No completed sessions as a learner yet.",
+    emptyTaught: "No completed sessions as an instructor yet.",
   },
   skillDetail: {
     reviewsCount: "{{rating}} ({{count}} reviews)",
@@ -962,12 +958,12 @@ export const en = {
         "Tiempo was born from a simple yet powerful idea: everyone has something valuable to teach, and everyone has something they want to learn. We believe that knowledge shouldn't be locked behind financial barriers.",
       missionP2:
         "Our platform enables people to exchange skills using time as currency. One hour of your time teaching equals one hour of learning from someone else. It's fair, it's simple, and it builds genuine connections.",
-      stats: [
-        { number: "10,000+", label: "Active Users" },
-        { number: "500+", label: "Skills Shared" },
-        { number: "50,000+", label: "Hours Exchanged" },
-        { number: "95%", label: "Satisfaction Rate" },
-      ],
+      stats: {
+        members: "Verified members",
+        skills: "Skills listed",
+        hours: "Hours exchanged (completed)",
+        satisfaction: "Satisfaction (from reviews)",
+      },
       valuesTitle: "Our Values",
       values: [
         {

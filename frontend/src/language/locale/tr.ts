@@ -685,9 +685,9 @@ export const tr: Translation = {
     learnHour: "1 zaman kredisi = 1 saat öğrenme",
     learnHourSub: "Kredileri herhangi bir şey öğrenmek için harca",
     bonusTitle: "Yeni üye bonusu",
-    bonusCredits: "5 ücretsiz zaman kredisi kazan",
+    bonusCredits: "1 ücretsiz zaman kredisi",
     bonusDesc:
-      "Tiempo'e katıldığında hemen öğrenmeye başla. Başlamak için öğretmen olmana gerek yok!",
+      "Yeni üyeler 1 zaman kredisiyle (1 saat öğrenme) başlar. Hemen başla — önce öğretmen olmana gerek yok.",
     claimBonus: "Bonusunu al",
     whyTitle: "Neden Tiempo?",
     benefits: [
@@ -718,7 +718,7 @@ export const tr: Translation = {
       },
       {
         q: "İlk zaman kredilerimi nasıl alırım?",
-        a: "Yeni üyeler hemen öğrenmeye başlamak için 5 başlangıç kredisi alır. Daha fazla kredi için hemen öğretmeye de başlayabilirsin.",
+        a: "Yeni üyeler hemen öğrenmeye başlamak için 1 saatlik ücretsiz zaman kredisi alır. Daha fazla kredi için hemen öğretmeye de başlayabilirsin.",
       },
     ],
     seeAlsoTitle: "Daha fazla",
@@ -734,20 +734,12 @@ export const tr: Translation = {
     heroSubtitle:
       "Sorularınız mı var? Mesajınızı bekliyoruz; en kısa sürede yanıtlıyoruz.",
     infoTitle: "İletişim bilgileri",
-    infoIntro:
-      "Bu kanallardan bize ulaşabilirsiniz. Yardımcı olmaktan memnuniyet duyarız!",
+    infoIntro: "Bize e-posta ile ulaşabilirsiniz; yardımcı olmaktan memnuniyet duyarız.",
     emailTitle: "E-posta",
-    emailLine1: "support@timelink.local",
-    emailLine2: "hello@timelink.local",
-    phoneTitle: "Telefon",
-    phoneNumber: "+90 (555) 123 45 67",
-    phoneHours: "Hafta içi 09:00–18:00",
-    officeTitle: "Adres",
-    officeLine1: "Örnek Mah. Öğrenme Sok. No: 123",
-    officeLine2: "İstanbul, Türkiye",
+    emailAddress: "tiempos.site@gmail.com",
     responseTitle: "Yanıt süresi",
     responseText:
-      "İş günlerinde genelde 24 saat içinde döneriz. Acil durumlarda lütfen telefon kullanın.",
+      "İş günlerinde genelde 24 saat içinde e-posta ile döneriz.",
     formTitle: "Bize yazın",
     labelName: "Ad Soyad",
     labelEmail: "E-posta",
@@ -764,9 +756,13 @@ export const tr: Translation = {
     subjectFeedback: "Geri bildirim",
     subjectOther: "Diğer",
     sendButton: "Mesajı gönder",
+    sending: "Gönderiliyor…",
     successTitle: "Mesajınız iletildi!",
     successText:
       "İletişime geçtiğiniz için teşekkürler. En kısa sürede size döneceğiz.",
+    errorSend: "Mesaj gönderilemedi. Lütfen tekrar deneyin veya doğrudan e-posta yazın.",
+    errorUnavailable:
+      "Şu an siteden e-posta gönderilemiyor (SMTP hazır değil veya gönderim hatası). Render’da SPRING_MAIL_* ve APP_MAIL_FROM ayarlarını kontrol edin. Yine de tiempos.site@gmail.com adresine yazabilirsiniz.",
     faqSectionTitle: "Hızlı cevaplar mı arıyorsunuz?",
     faqSectionText:
       "Yaygın soruların yanıtları için SSS sayfamıza göz atın.",
@@ -862,8 +858,8 @@ export const tr: Translation = {
     rateOnProfileHint:
       "Profilinizde Öğrenme sekmesine gider; oradan bu oturumu puanlayabilirsiniz.",
     emptyAll: "Henüz oturum geçmişin yok.",
-    emptyLearned: "Öğrenci olarak tamamladığın oturum yok.",
-    emptyTaught: "Eğitmen olarak tamamladığın oturum yok.",
+    emptyLearned: "Öğrenci olarak tamamlanmış oturumun henüz yok.",
+    emptyTaught: "Eğitmen olarak tamamlanmış oturumun henüz yok.",
   },
   skillDetail: {
     reviewsCount: "{{rating}} ({{count}} değerlendirme)",
@@ -967,12 +963,12 @@ export const tr: Translation = {
         "Tiempo güçlü ama basit bir fikirden doğdu: herkesin öğretebileceği bir şey ve öğrenmek istediği bir şey var. Bilginin maddi engellerin arkasında kilitli olmaması gerektiğine inanıyoruz.",
       missionP2:
         "Platformumuzda beceriler zaman para birimiyle takas edilir. Bir saat öğretmenlik, başka birinden bir saat öğrenmeye eşittir. Adil, sade ve gerçek bağlar kurar.",
-      stats: [
-        { number: "10.000+", label: "Aktif kullanıcı" },
-        { number: "500+", label: "Paylaşılan beceri" },
-        { number: "50.000+", label: "Takas edilen saat" },
-        { number: "%95", label: "Memnuniyet oranı" },
-      ],
+      stats: {
+        members: "Doğrulanmış üyeler",
+        skills: "Yayınlanan beceriler",
+        hours: "Takas edilen saat (tamamlanan)",
+        satisfaction: "Memnuniyet (değerlendirmeler)",
+      },
       valuesTitle: "Değerlerimiz",
       values: [
         {

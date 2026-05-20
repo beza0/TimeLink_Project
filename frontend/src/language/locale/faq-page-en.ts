@@ -28,7 +28,7 @@ export const faqPageEn = {
       id: 2,
       category: "general",
       q: "How does the time credit system work?",
-      a: "Every new user starts with 10 time credits (hours). When you teach someone for 1 hour, you earn 1 credit. When you learn from someone for 1 hour, you spend 1 credit. All skills are valued equally in terms of time.",
+      a: "Every new user starts with 1 free hour of time credit. When you teach someone for 1 hour, you earn 1 credit. When you learn from someone for 1 hour, you spend 1 credit. All skills are valued equally in terms of time.",
     },
     {
       id: 3,
@@ -40,7 +40,7 @@ export const faqPageEn = {
       id: 4,
       category: "getting-started",
       q: "How do I get started?",
-      a: "Simply sign up for a free account, complete your profile, add the skills you can teach, and browse available skills you'd like to learn. You'll start with 10 time credits to book your first sessions.",
+      a: "Simply sign up for a free account, complete your profile, add the skills you can teach, and browse available skills you'd like to learn. You'll start with 1 free hour of time credit to book your first session.",
     },
     {
       id: 5,

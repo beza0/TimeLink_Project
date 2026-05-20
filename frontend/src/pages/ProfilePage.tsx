@@ -124,34 +124,59 @@ function formatSessionTime(
   });
 }
 
-function formatSkillAvailability(
+const WEEKDAY_LABEL_INDEX: Record<string, number> = {
+  MONDAY: 0,
+  TUESDAY: 1,
+  WEDNESDAY: 2,
+  THURSDAY: 3,
+  FRIDAY: 4,
+  SATURDAY: 5,
+  SUNDAY: 6,
+};
+
+const WEEKDAY_SORT_ORDER: Record<string, number> = {
+  MONDAY: 0,
+  TUESDAY: 1,
+  WEDNESDAY: 2,
+  THURSDAY: 3,
+  FRIDAY: 4,
+  SATURDAY: 5,
+  SUNDAY: 6,
+};
+
+type SkillAvailabilityParts = { days: string; hours: string };
+
+function localizeSkillDays(dayKeys: string[], dayLabels: string[]): string {
+  return dayKeys
+    .map((key) => ({
+      key: key.toUpperCase(),
+      label: dayLabels[WEEKDAY_LABEL_INDEX[key.toUpperCase()]] ?? key,
+      order: WEEKDAY_SORT_ORDER[key.toUpperCase()] ?? 99,
+    }))
+    .filter((d) => Boolean(d.label))
+    .sort((a, b) => a.order - b.order)
+    .map((d) => d.label)
+    .join(", ");
+}
+
+function getSkillAvailabilityParts(
   skill: SkillDto,
   dayLabels: string[],
-): string | null {
+): SkillAvailabilityParts | null {
   const days = skill.availableDays ?? [];
   const from = skill.availableFrom;
   const until = skill.availableUntil;
   if (!days.length || !from || !until) return null;
-  const dayIndex: Record<string, number> = {
-    MONDAY: 0,
-    TUESDAY: 1,
-    WEDNESDAY: 2,
-    THURSDAY: 3,
-    FRIDAY: 4,
-    SATURDAY: 5,
-    SUNDAY: 6,
+  return {
+    days: localizeSkillDays(days, dayLabels),
+    hours: `${from} – ${until}`,
   };
-  const localizedDays = days
-    .map((d) => dayLabels[dayIndex[d]] ?? d)
-    .filter(Boolean)
-    .join(", ");
-  return `${localizedDays} · ${from} - ${until}`;
 }
 
 function fallbackAvailabilityFromDescription(
   description: string,
   dayLabels: string[],
-): string | null {
+): SkillAvailabilityParts | null {
   const raw =
     description.match(
       /(Available Days \*|Müsait günler \*):\s*([^\n]+?)\s+(Available From \*|Başlangıç \*)[–-](Available Until \*|Bitiş \*):\s*(\d{2}:\d{2})\s*[–-]\s*(\d{2}:\d{2})/i,
@@ -164,25 +189,15 @@ function fallbackAvailabilityFromDescription(
   const from = raw[5] ?? raw[3];
   const until = raw[6] ?? raw[4];
   if (!daysRaw || !from || !until) return null;
-  const normalizedDays = daysRaw
+  const dayKeys = daysRaw
     .split(",")
     .map((d) => d.trim())
     .filter(Boolean)
-    .map((d) => {
-      const upper = d.toUpperCase();
-      const dayIndex: Record<string, number> = {
-        MONDAY: 0,
-        TUESDAY: 1,
-        WEDNESDAY: 2,
-        THURSDAY: 3,
-        FRIDAY: 4,
-        SATURDAY: 5,
-        SUNDAY: 6,
-      };
-      return dayLabels[dayIndex[upper]] ?? d;
-    })
-    .join(", ");
-  return `${normalizedDays} · ${from} - ${until}`;
+    .map((d) => d.toUpperCase().replace(/\s+/g, "_"));
+  return {
+    days: localizeSkillDays(dayKeys, dayLabels),
+    hours: `${from} – ${until}`,
+  };
 }
 
 export function ProfilePage({
@@ -700,10 +715,12 @@ export function ProfilePage({
                       const locationText =
                         (skill.inPersonLocation || "").trim() ||
                         fallbackLocationFromDescription(skill.description);
-                      const availability = formatSkillAvailability(
-                        skill,
-                        dayLabels,
-                      ) ?? fallbackAvailabilityFromDescription(skill.description, dayLabels);
+                      const availability =
+                        getSkillAvailabilityParts(skill, dayLabels) ??
+                        fallbackAvailabilityFromDescription(
+                          skill.description,
+                          dayLabels,
+                        );
 
                       const coverUrl = resolveSkillCoverImageUrl(skill);
                       return (
@@ -753,7 +770,17 @@ export function ProfilePage({
                                   </Badge>
                                 ) : null}
                                 {availability ? (
-                                  <Badge variant="outline">{availability}</Badge>
+                                  <>
+                                    <Badge
+                                      variant="outline"
+                                      className="h-auto max-w-full basis-full whitespace-normal text-left leading-snug sm:max-w-[min(100%,20rem)] sm:basis-auto"
+                                    >
+                                      {availability.days}
+                                    </Badge>
+                                    <Badge variant="outline" className="shrink-0">
+                                      {availability.hours}
+                                    </Badge>
+                                  </>
                                 ) : null}
                               </div>
                             </div>

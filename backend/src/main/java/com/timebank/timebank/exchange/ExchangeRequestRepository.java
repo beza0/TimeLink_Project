@@ -50,4 +50,7 @@ public interface ExchangeRequestRepository extends JpaRepository<ExchangeRequest
             @Param("st") ExchangeRequestStatus st,
             @Param("uid") UUID userId
     );
+
+    @Query("SELECT COALESCE(SUM(e.bookedMinutes), 0) FROM ExchangeRequest e WHERE e.status = :status")
+    long sumBookedMinutesByStatus(@Param("status") ExchangeRequestStatus status);
 }

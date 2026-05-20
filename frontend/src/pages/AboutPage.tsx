@@ -8,7 +8,9 @@ import {
   Target,
   Sparkles,
 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { useLanguage } from "../contexts/LanguageContext";
+import { fetchPublicPlatformStats, type PublicPlatformStats } from "../api/publicStats";
 import "../styles/about.css";
 
 const valueIcons = [Users, Heart, Award, Target, Sparkles, Clock] as const;
@@ -26,9 +28,79 @@ interface AboutPageProps {
   onNavigate?: (page: PageType) => void;
 }
 
+function formatCount(n: number, locale: string): string {
+  return new Intl.NumberFormat(locale === "tr" ? "tr-TR" : "en-US", {
+    maximumFractionDigits: 0,
+  }).format(n);
+}
+
+function completedHoursRounded(totalMinutes: number): number {
+  return Math.round(totalMinutes / 60);
+}
+
 export function AboutPage({ onNavigate }: AboutPageProps) {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const a = t.staticSite.about;
+  const [stats, setStats] = useState<PublicPlatformStats | null>(null);
+  const [statsError, setStatsError] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    setStatsError(false);
+    fetchPublicPlatformStats()
+      .then((data) => {
+        if (!cancelled) setStats(data);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setStats(null);
+          setStatsError(true);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const statCards = useMemo(() => {
+    const nfLocale = locale === "tr" ? "tr-TR" : "en-US";
+    const dash = "—";
+    const loading = "…";
+
+    const members =
+      stats != null
+        ? formatCount(stats.verifiedMemberCount, locale)
+        : statsError
+          ? dash
+          : loading;
+    const skills =
+      stats != null
+        ? formatCount(stats.skillsListedCount, locale)
+        : statsError
+          ? dash
+          : loading;
+    const hours =
+      stats != null
+        ? formatCount(completedHoursRounded(stats.completedSessionMinutesTotal), locale)
+        : statsError
+          ? dash
+          : loading;
+    const satisfaction =
+      stats != null
+        ? stats.satisfactionPercent != null
+          ? `${new Intl.NumberFormat(nfLocale, { maximumFractionDigits: 0 }).format(stats.satisfactionPercent)}%`
+          : dash
+        : statsError
+          ? dash
+          : loading;
+
+    return [
+      { number: members, label: a.stats.members },
+      { number: skills, label: a.stats.skills },
+      { number: hours, label: a.stats.hours },
+      { number: satisfaction, label: a.stats.satisfaction },
+    ];
+  }, [a.stats, locale, stats, statsError]);
 
   return (
     <PageLayout onNavigate={onNavigate}>
@@ -55,7 +127,7 @@ export function AboutPage({ onNavigate }: AboutPageProps) {
                   <p className="about-paragraph">{a.missionP2}</p>
                 </div>
                 <div className="about-stats-grid">
-                  {a.stats.map((stat, i) => (
+                  {statCards.map((stat, i) => (
                     <div key={i} className="about-stat-card">
                       <div className="stat-number">{stat.number}</div>
                       <div className="stat-label">{stat.label}</div>

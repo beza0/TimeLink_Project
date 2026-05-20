@@ -2,9 +2,11 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { PageLayout } from "../components/layout/PageLayout";
 import type { PageType } from "../App";
-import { Mail, MapPin, Phone, Send, MessageSquare } from "lucide-react";
+import { Mail, Send, MessageSquare } from "lucide-react";
 import { useLanguage } from "../contexts/LanguageContext";
 import { PATHS } from "../navigation/paths";
+import { submitContactForm, contactFormErrorMessage } from "../api/contact";
+import { ApiError } from "../api/client";
 import "../styles/contact.css";
 
 interface ContactPageProps {
@@ -23,14 +25,38 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
     message: "",
   });
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
-    window.setTimeout(() => {
-      setSubmitted(false);
+    setSubmitError(null);
+    setSubmitting(true);
+    try {
+      await submitContactForm({
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        subject: formData.subject,
+        message: formData.message.trim(),
+      });
+      setSubmitted(true);
       setFormData({ name: "", email: "", subject: "", message: "" });
-    }, 3000);
+      window.setTimeout(() => {
+        setSubmitted(false);
+      }, 4000);
+    } catch (err) {
+      const fallback = c.errorSend;
+      let msg: string;
+      if (err instanceof ApiError && err.status === 503) {
+        const detail = err.message.trim();
+        msg = detail ? `${c.errorUnavailable}\n${detail}` : c.errorUnavailable;
+      } else {
+        msg = contactFormErrorMessage(err, fallback);
+      }
+      setSubmitError(msg);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleChange = (
@@ -78,38 +104,14 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
                         <h3 className="contact-info-card-title">
                           {c.emailTitle}
                         </h3>
-                        <p className="contact-info-card-text">{c.emailLine1}</p>
-                        <p className="contact-info-card-text">{c.emailLine2}</p>
-                      </div>
-                    </div>
-
-                    <div className="contact-info-card">
-                      <div className="contact-info-icon contact-info-icon-purple">
-                        <Phone aria-hidden />
-                      </div>
-                      <div>
-                        <h3 className="contact-info-card-title">
-                          {c.phoneTitle}
-                        </h3>
                         <p className="contact-info-card-text">
-                          {c.phoneNumber}
+                          <a
+                            href={`mailto:${c.emailAddress}`}
+                            className="text-primary underline-offset-2 hover:underline"
+                          >
+                            {c.emailAddress}
+                          </a>
                         </p>
-                        <p className="contact-info-card-text-small">
-                          {c.phoneHours}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="contact-info-card">
-                      <div className="contact-info-icon contact-info-icon-indigo">
-                        <MapPin aria-hidden />
-                      </div>
-                      <div>
-                        <h3 className="contact-info-card-title">
-                          {c.officeTitle}
-                        </h3>
-                        <p className="contact-info-card-text">{c.officeLine1}</p>
-                        <p className="contact-info-card-text">{c.officeLine2}</p>
                       </div>
                     </div>
                   </div>
@@ -212,10 +214,19 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
                           />
                         </div>
 
-                        <button type="submit" className="contact-form-button">
+                        <button
+                          type="submit"
+                          className="contact-form-button"
+                          disabled={submitting}
+                        >
                           <Send className="button-icon" aria-hidden />
-                          {c.sendButton}
+                          {submitting ? c.sending : c.sendButton}
                         </button>
+                        {submitError ? (
+                          <p className="mt-3 text-sm text-destructive" role="alert">
+                            {submitError}
+                          </p>
+                        ) : null}
                       </form>
                     )}
                   </div>

@@ -28,7 +28,7 @@ export const faqPageTr = {
       id: 2,
       category: "general",
       q: "Zaman kredisi sistemi nasıl işler?",
-      a: "Her yeni kullanıcı 10 zaman kredisi (saat) ile başlar. Birine 1 saat öğrettiğinizde 1 kredi kazanırsınız; birinden 1 saat öğrendiğinizde 1 kredi harcarsınız. Tüm beceriler süre açısından eşit değerlendirilir.",
+      a: "Her yeni kullanıcı 1 saatlik ücretsiz zaman kredisi ile başlar. Birine 1 saat öğrettiğinizde 1 kredi kazanırsınız; birinden 1 saat öğrendiğinizde 1 kredi harcarsınız. Tüm beceriler süre açısından eşit değerlendirilir.",
     },
     {
       id: 3,
@@ -40,7 +40,7 @@ export const faqPageTr = {
       id: 4,
       category: "getting-started",
       q: "Nasıl başlarım?",
-      a: "Ücretsiz hesap oluşturun, profilinizi tamamlayın, öğretebileceğiniz becerileri ekleyin ve öğrenmek istediğiniz becerilere göz atın. İlk oturumlarınızı ayırmak için 10 zaman kredisi ile başlarsınız.",
+      a: "Ücretsiz hesap oluşturun, profilinizi tamamlayın, öğretebileceğiniz becerileri ekleyin ve öğrenmek istediğiniz becerilere göz atın. İlk oturumunuzu ayırmak için 1 saatlik ücretsiz zaman kredisi ile başlarsınız.",
     },
     {
       id: 5,

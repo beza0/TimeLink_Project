@@ -399,25 +399,25 @@ export function AddSkillPage({ onNavigate }: AddSkillPageProps) {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div className="min-w-0">
                     <Label htmlFor="start-time">{a.availableFrom}</Label>
                     <Input
                       id="start-time"
                       type="time"
                       value={startTime}
                       onChange={(ev) => setStartTime(ev.target.value)}
-                      className="mt-2"
+                      className="mt-2 w-full min-w-0"
                     />
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <Label htmlFor="end-time">{a.availableUntil}</Label>
                     <Input
                       id="end-time"
                       type="time"
                       value={endTime}
                       onChange={(ev) => setEndTime(ev.target.value)}
-                      className="mt-2"
+                      className="mt-2 w-full min-w-0"
                     />
                   </div>
                 </div>

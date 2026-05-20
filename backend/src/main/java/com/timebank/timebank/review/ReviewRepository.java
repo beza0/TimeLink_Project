@@ -33,4 +33,7 @@ public interface ReviewRepository extends JpaRepository<Review, UUID> {
 
     @Query("select avg(r.rating) from Review r where r.reviewer.email = :email")
     Double findAverageRatingByReviewerEmail(String email);
+
+    @Query("SELECT AVG(r.rating) FROM Review r")
+    Double averageRatingAll();
 }
