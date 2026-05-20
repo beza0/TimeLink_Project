@@ -50,7 +50,7 @@ public class UserController {
                             p.getEmail(),
                             0,
                             true,
-                            registrationMailService.isMailDeliveryEnabled(),
+                            registrationMailService.isOutgoingMailPossible(),
                             registrationMailService.isLocalCaptureSmtp()
                     )
             );

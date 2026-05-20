@@ -31,6 +31,8 @@ function googleAnalyticsHtmlPlugin(gaId: string | undefined): Plugin {
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, projectRoot, "");
   const gaId = env.VITE_GA_MEASUREMENT_ID;
+  /** Yerelde 8080 başka bir konteyner/süreç tarafından doluysa: .env → DEV_API_PROXY=http://localhost:8082 */
+  const devApiProxy = (env.DEV_API_PROXY || "http://localhost:8080").trim().replace(/\/+$/, "");
 
   return {
     envDir: projectRoot,
@@ -39,7 +41,7 @@ export default defineConfig(({ mode }) => {
     server: {
       proxy: {
         "/api": {
-          target: "http://localhost:8080",
+          target: devApiProxy,
           changeOrigin: true,
         },
       },

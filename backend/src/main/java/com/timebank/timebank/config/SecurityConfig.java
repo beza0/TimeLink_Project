@@ -10,6 +10,9 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.DispatcherTypeRequestMatcher;
+
+import jakarta.servlet.DispatcherType;
 
 @Configuration
 @EnableMethodSecurity  // 👈 @PreAuthorize kullanmak için
@@ -33,6 +36,9 @@ public class SecurityConfig {
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(auth -> auth
+                        // Hata yönlendirmesi (ERROR dispatch) aksi halde bazı ortamlarda 401 dönebiliyor
+                        .requestMatchers(new DispatcherTypeRequestMatcher(DispatcherType.ERROR)).permitAll()
+                        .requestMatchers("/error", "/error/**").permitAll()
                         // CORS preflight (Authorization olmadan); aksi halde 403 → tarayıcı isteği bloklar
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/").permitAll()

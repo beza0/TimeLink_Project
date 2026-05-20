@@ -18,8 +18,8 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * Brevo Transactional e-posta HTTP API (HTTPS 443). Render’da SMTP 587 sorunlarına karşı iletişim formu yedeği.
- * Anahtar: {@code brevo.api-key} / ortam değişkeni {@code BREVO_API_KEY} (Brevo panelinde “API keys”, SMTP şifresi değil).
+ * Brevo Transactional e-posta HTTP API (HTTPS 443). İletişim formu, doğrulama ve şifre sıfırlama için kullanılır.
+ * Anahtar: {@code brevo.api-key} / {@code BREVO_API_KEY} (Brevo “API keys”; SMTP xsmtpsib- şifresi değildir).
  */
 @Component
 public class BrevoTransactionalContactSender {
@@ -68,6 +68,49 @@ public class BrevoTransactionalContactSender {
             return false;
         }
         Map<String, Object> payload = buildPayload(name, replyToEmail, subject, textBody, toInbox, parsed);
+        return postPayload(apiKey, payload, "contact", toInbox, replyToEmail);
+    }
+
+    /**
+     * Tek alıcıya düz metin (doğrulama / şifre sıfırlama). Reply-To yok.
+     */
+    public boolean sendPlainToRecipient(String toEmail, String subject, String textBody, String fromHeader) {
+        String apiKey = apiKeyRaw();
+        if (apiKey.isBlank()) {
+            return false;
+        }
+        ParsedFrom parsed = parseFromHeader(fromHeader);
+        if (parsed.email() == null || parsed.email().isBlank()) {
+            log.warn("Brevo API: gönderici e-postası çıkarılamadı, fromHeader={}", maskFromForLog(fromHeader));
+            return false;
+        }
+        if (toEmail == null || toEmail.isBlank()) {
+            return false;
+        }
+        Map<String, Object> sender = new LinkedHashMap<>();
+        sender.put("name", parsed.name().isBlank() ? "Tiempos" : parsed.name());
+        sender.put("email", parsed.email());
+
+        List<Map<String, String>> to = new ArrayList<>();
+        Map<String, String> toOne = new LinkedHashMap<>();
+        toOne.put("email", toEmail.trim());
+        to.add(toOne);
+
+        Map<String, Object> root = new LinkedHashMap<>();
+        root.put("sender", sender);
+        root.put("to", to);
+        root.put("subject", subject);
+        root.put("textContent", textBody);
+        return postPayload(apiKey, root, "transactional", toEmail, null);
+    }
+
+    private boolean postPayload(
+            String apiKey,
+            Map<String, Object> payload,
+            String kind,
+            String toMaskedHint,
+            String replyToHint
+    ) {
         try {
             restClient.post()
                     .uri(BREVO_SEND_URI)
@@ -77,19 +120,24 @@ public class BrevoTransactionalContactSender {
                     .body(payload)
                     .retrieve()
                     .toBodilessEntity();
-            log.info("Brevo API: iletişim formu kabul edildi, inbox={}, replyTo={}", toInbox, maskEmailForLog(replyToEmail));
+            if (replyToHint != null) {
+                log.info("Brevo API: {} gönderildi, to={}, replyTo={}", kind, toMaskedHint, maskEmailForLog(replyToHint));
+            } else {
+                log.info("Brevo API: {} gönderildi, to={}", kind, maskEmailForLog(toMaskedHint));
+            }
             return true;
         } catch (RestClientResponseException e) {
             String body = e.getResponseBodyAsString();
             String snippet = body == null || body.length() < 400 ? body : body.substring(0, 400) + "…";
             log.error(
-                    "Brevo API HTTP {} : {}",
+                    "Brevo API HTTP {} ({}): {}",
                     e.getStatusCode().value(),
+                    kind,
                     snippet == null || snippet.isBlank() ? "(gövde yok)" : snippet
             );
             return false;
         } catch (Exception e) {
-            log.error("Brevo API iletişim formu gönderilemedi: {}", e.getMessage(), e);
+            log.error("Brevo API {} gönderilemedi: {}", kind, e.getMessage(), e);
             return false;
         }
     }

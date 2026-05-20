@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
 import java.util.Locale;
 
 /**
- * Kayıt e-postaları. {@code spring.mail.host} yoksa gönderim yok; kayıt akışında doğrulama da atlanır.
+ * Kayıt e-postaları. SMTP ve/veya Brevo HTTPS API ({@code BREVO_API_KEY}) ile gönderilir.
  */
 @Service
 public class RegistrationMailService {
@@ -47,6 +47,11 @@ public class RegistrationMailService {
         this.mailSenderProvider = mailSenderProvider;
         this.environment = environment;
         this.brevoTransactionalContactSender = brevoTransactionalContactSender;
+    }
+
+    /** SMTP veya Brevo HTTPS API ile dışarı posta gönderilebiliyor mu (doğrulama / resend için). */
+    public boolean isOutgoingMailPossible() {
+        return brevoTransactionalContactSender.isConfigured() || isMailDeliveryEnabled();
     }
 
     /** SMTP ile gerçek posta gönderilebiliyor mu (doğrulama zorunlu mu)? */
@@ -206,7 +211,7 @@ public class RegistrationMailService {
         boolean sent = sendVerificationCode(fullName, email, code);
         if (!sent) {
             log.warn(
-                    "Doğrulama e-postası gönderilemedi (kayıt yine de tamam). e-posta={} — Render loglarında SMTP hatasına bakın; geçici olarak APP_MAIL_ENABLED=false veya Brevo ayarlarını düzeltin.",
+                    "Doğrulama e-postası gönderilemedi (kayıt yine de tamam). e-posta={} — Render loglarına bakın; BREVO_API_KEY veya SPRING_MAIL_* / APP_MAIL_FROM ayarlayın.",
                     email);
         }
     }
@@ -216,9 +221,29 @@ public class RegistrationMailService {
      * @return true gönderim başarılı; false atlandı veya SMTP hatası (çağıran HTTP isteğini patlatmaz)
      */
     public boolean sendVerificationCode(String fullName, String email, String code) {
+        if (code == null || code.isBlank()) {
+            log.warn("Doğrulama kodu boş, e-posta atlanıyor: {}", email);
+            return false;
+        }
+        String from = fromAddress();
+        String publicBase = environment.getProperty("app.public-base-url", "http://localhost:3000").trim().replaceAll("/$", "");
+        String subject = "Tiempos — doğrulama kodunuz";
+        String text =
+                "Merhaba " + fullName + ",\n\n"
+                        + "Tiempos hesabınızı tamamlamak için doğrulama kodunuz:\n\n"
+                        + "    " + code + "\n\n"
+                        + "Bu kodu uygulamada girerek hesabınızı açabilirsiniz.\n"
+                        + "Uygulama adresi: " + publicBase + "\n\n"
+                        + "Kod 48 saat geçerlidir. Siz kayıt olmadıysanız bu iletiyi yok sayın.\n";
+
+        if (brevoTransactionalContactSender.sendPlainToRecipient(email, subject, text, from)) {
+            log.info("Doğrulama e-postası (Brevo API): {}", email);
+            return true;
+        }
+
         if (!isMailDeliveryEnabled()) {
             log.warn(
-                    "SMTP kapalı — doğrulama kodu e-postayla gitmez. e-posta={} kod={}",
+                    "SMTP kapalı ve Brevo API anahtarı yok/başarısız — doğrulama kodu e-postayla gitmez. e-posta={} kod={}",
                     email,
                     code);
             return false;
@@ -228,38 +253,29 @@ public class RegistrationMailService {
             log.debug("JavaMailSender yok, doğrulama e-postası atlanıyor");
             return false;
         }
-        if (code == null || code.isBlank()) {
-            log.warn("Doğrulama kodu boş, e-posta atlanıyor: {}", email);
-            return false;
-        }
-        String from = fromAddress();
-        String publicBase = environment.getProperty("app.public-base-url", "http://localhost:3000").trim().replaceAll("/$", "");
         try {
             SimpleMailMessage msg = new SimpleMailMessage();
             msg.setFrom(from);
             msg.setTo(email);
-            msg.setSubject("Tiempos — doğrulama kodunuz");
-            msg.setText(
-                    "Merhaba " + fullName + ",\n\n"
-                            + "Tiempos hesabınızı tamamlamak için doğrulama kodunuz:\n\n"
-                            + "    " + code + "\n\n"
-                            + "Bu kodu uygulamada girerek hesabınızı açabilirsiniz.\n"
-                            + "Uygulama adresi: " + publicBase + "\n\n"
-                            + "Kod 48 saat geçerlidir. Siz kayıt olmadıysanız bu iletiyi yok sayın.\n"
-            );
+            msg.setSubject(subject);
+            msg.setText(text);
             mailSender.send(msg);
-            log.info("Doğrulama e-postası gönderildi: {}", email);
+            log.info("Doğrulama e-postası (SMTP): {}", email);
             return true;
         } catch (Exception e) {
             String host = environment.getProperty("spring.mail.host", "(yok)");
             log.error(
-                    "Doğrulama e-postası gönderilemedi: alici={}, smtpHost={}, from={}, hata={}",
+                    "Doğrulama e-postası (SMTP) gönderilemedi: alici={}, smtpHost={}, from={}, hata={}",
                     email,
                     host,
                     from,
                     e.getMessage(),
                     e
             );
+            if (brevoTransactionalContactSender.sendPlainToRecipient(email, subject, text, from)) {
+                log.warn("SMTP başarısız; doğrulama Brevo API ile gönderildi: {}", email);
+                return true;
+            }
             if (isStrictMailErrors()) {
                 throw new IllegalStateException(
                         "Doğrulama e-postası gönderilemedi. SMTP ayarlarını (Brevo gönderici, SMTP key, APP_MAIL_FROM) kontrol edin.",
@@ -282,7 +298,21 @@ public class RegistrationMailService {
 
     /** Şifre sıfırlama kodu gönderir. */
     public void sendPasswordResetCode(String fullName, String email, String code) {
+        String from = fromAddress();
+        String subject = "Tiempos — şifre sıfırlama kodunuz";
+        String text =
+                "Merhaba " + fullName + ",\n\n"
+                        + "Şifre sıfırlama kodunuz:\n\n"
+                        + "    " + code + "\n\n"
+                        + "Bu kodu uygulamada girerek yeni şifrenizi belirleyebilirsiniz.\n"
+                        + "Kod 1 saat geçerlidir. Siz bu talebi yapmadıysanız bu iletiyi yok sayın.\n";
+
+        if (brevoTransactionalContactSender.sendPlainToRecipient(email, subject, text, from)) {
+            log.info("Şifre sıfırlama e-postası (Brevo API): {}", email);
+            return;
+        }
         if (!isMailDeliveryEnabled()) {
+            log.warn("SMTP kapalı ve Brevo API yok — şifre sıfırlama e-postası gönderilemedi: {}", email);
             return;
         }
         JavaMailSender mailSender = mailSenderProvider.getIfAvailable();
@@ -290,23 +320,20 @@ public class RegistrationMailService {
             log.debug("JavaMailSender yok, şifre sıfırlama e-postası atlanıyor");
             return;
         }
-        String from = fromAddress();
         try {
             SimpleMailMessage msg = new SimpleMailMessage();
             msg.setFrom(from);
             msg.setTo(email);
-            msg.setSubject("Tiempos — şifre sıfırlama kodunuz");
-            msg.setText(
-                    "Merhaba " + fullName + ",\n\n"
-                            + "Şifre sıfırlama kodunuz:\n\n"
-                            + "    " + code + "\n\n"
-                            + "Bu kodu uygulamada girerek yeni şifrenizi belirleyebilirsiniz.\n"
-                            + "Kod 1 saat geçerlidir. Siz bu talebi yapmadıysanız bu iletiyi yok sayın.\n"
-            );
+            msg.setSubject(subject);
+            msg.setText(text);
             mailSender.send(msg);
-            log.info("Şifre sıfırlama e-postası gönderildi: {}", email);
+            log.info("Şifre sıfırlama e-postası (SMTP): {}", email);
         } catch (Exception e) {
-            log.error("Şifre sıfırlama e-postası gönderilemedi ({})", email, e);
+            log.error("Şifre sıfırlama e-postası (SMTP) gönderilemedi ({})", email, e);
+            if (brevoTransactionalContactSender.sendPlainToRecipient(email, subject, text, from)) {
+                log.warn("SMTP başarısız; şifre sıfırlama Brevo API ile gönderildi: {}", email);
+                return;
+            }
             throw new IllegalStateException(
                     "Şifre sıfırlama e-postası gönderilemedi. SMTP ayarlarını kontrol edin.",
                     e
@@ -316,6 +343,20 @@ public class RegistrationMailService {
 
     /** SMTP kapalıyken basit hoş geldin (geliştirme). */
     public void sendWelcomeAfterRegister(User user) {
+        String from = fromAddress();
+        String to = user.getEmail();
+        String publicBase = environment.getProperty("app.public-base-url", "http://localhost:3000");
+        String subject = "Tiempos — kaydınız tamamlandı";
+        String text =
+                "Merhaba " + user.getFullName() + ",\n\n"
+                        + "Tiempos'a hoş geldiniz. Hesabınız oluşturuldu.\n\n"
+                        + "Uygulama: " + publicBase + "\n\n"
+                        + "Bu e-postayı siz talep etmediyseniz yok sayabilirsiniz.\n";
+
+        if (brevoTransactionalContactSender.sendPlainToRecipient(to, subject, text, from)) {
+            log.info("Kayıt hoş geldin e-postası (Brevo API): {}", to);
+            return;
+        }
         if (!isMailDeliveryEnabled()) {
             return;
         }
@@ -323,24 +364,16 @@ public class RegistrationMailService {
         if (mailSender == null) {
             return;
         }
-        String from = fromAddress();
-        String to = user.getEmail();
-        String publicBase = environment.getProperty("app.public-base-url", "http://localhost:3000");
         try {
             SimpleMailMessage msg = new SimpleMailMessage();
             msg.setFrom(from);
             msg.setTo(to);
-            msg.setSubject("Tiempos — kaydınız tamamlandı");
-            msg.setText(
-                    "Merhaba " + user.getFullName() + ",\n\n"
-                            + "Tiempos'a hoş geldiniz. Hesabınız oluşturuldu.\n\n"
-                            + "Uygulama: " + publicBase + "\n\n"
-                            + "Bu e-postayı siz talep etmediyseniz yok sayabilirsiniz.\n"
-            );
+            msg.setSubject(subject);
+            msg.setText(text);
             mailSender.send(msg);
-            log.info("Kayıt hoş geldin e-postası gönderildi: {}", to);
+            log.info("Kayıt hoş geldin e-postası (SMTP): {}", to);
         } catch (Exception e) {
-            log.warn("Hoş geldin e-postası gönderilemedi ({}): {}", to, e.getMessage());
+            log.warn("Hoş geldin e-postası (SMTP) gönderilemedi ({}): {}", to, e.getMessage());
         }
     }
 

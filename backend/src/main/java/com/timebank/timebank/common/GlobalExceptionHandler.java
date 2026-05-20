@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 
 import java.time.Instant;
 
@@ -42,14 +43,37 @@ public class GlobalExceptionHandler {
             BadCredentialsException ex,
             HttpServletRequest request
     ) {
+        String raw = ex.getMessage();
+        String message =
+                raw != null
+                        && !raw.isBlank()
+                        && !"Bad credentials".equalsIgnoreCase(raw)
+                        && !"Unauthorized".equalsIgnoreCase(raw)
+                ? raw
+                : "Email veya şifre hatalı";
         ErrorResponse error = new ErrorResponse(
                 Instant.now(),
                 HttpStatus.UNAUTHORIZED.value(),
-                "Email veya şifre hatalı",
+                message,
                 request.getRequestURI()
         );
 
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponse> handleHttpMessageNotReadable(
+            HttpMessageNotReadableException ex,
+            HttpServletRequest request
+    ) {
+        log.warn("Geçersiz veya boş istek gövdesi: {} — {}", request.getRequestURI(), ex.getMessage());
+        ErrorResponse error = new ErrorResponse(
+                Instant.now(),
+                HttpStatus.BAD_REQUEST.value(),
+                "İstek gövdesi okunamadı veya geçersiz JSON.",
+                request.getRequestURI()
+        );
+        return ResponseEntity.badRequest().body(error);
     }
 
     @ExceptionHandler(EmailVerificationRequiredException.class)

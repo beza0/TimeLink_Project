@@ -64,6 +64,15 @@ Veritabanı dosyalarını da silmek için: `docker compose down -v`
 
 ---
 
+## Google ile giriş ve doğrulama e-postası
+
+- **Konsol:** `GSI_LOGGER: The given origin is not allowed for the given client ID` veya GSI iframe **403** → [Google Cloud Console](https://console.cloud.google.com/) → APIs & Services → **Credentials** → OAuth 2.0 **Web client** → **Authorized JavaScript origins** içine tam adresleri ekleyin:
+  - Yerel Vite: `http://localhost:5173`, `http://127.0.0.1:5173`
+  - Canlı: `https://www.tiempos.site`, `https://tiempos.site` (tarayıcıda kullandığınız tam origin)
+- **Aynı Web client ID:** kök `.env` veya Render’da `GOOGLE_CLIENT_ID` (backend `aud` doğrulaması) ve frontend için `VITE_GOOGLE_CLIENT_ID`. Backend’de boş bırakılırsa `aud` kontrolü atlanır; GSI yine de Console’daki **JavaScript origins** listesine ihtiyaç duyar.
+- **`POST /api/auth/social-login` 401 ve yanıtta yalnızca `Unauthorized`** → Yerelde API’nin çalıştığını doğrulayın (`http://localhost:8080`, Vite `/api` proxy). Network sekmesinde yanıt gövdesini kontrol edin; boşsa güncel backend imajını/sürümünü çalıştırdığınızdan emin olun.
+- **Doğrulama e-postası gelmiyorsa:** `BREVO_API_KEY` veya geçerli Brevo SMTP (`SPRING_MAIL_*`), `APP_MAIL_ENABLED=true`, Brevo’da yetkisiz IP engelinin kapalı olduğu ve `APP_MAIL_FROM` adresinin doğrulanmış olduğu kontrol edilir.
+
 ## Sorun giderme
 
 - **`Bind for 0.0.0.0:5432 failed: port is already allocated`** — Bilgisayarda zaten PostgreSQL çalışıyor. Bu projede Docker DB **5433** üzerinden yayınlanır; `application.properties` buna göre ayarlıdır.

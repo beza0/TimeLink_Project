@@ -148,11 +148,11 @@ public class UserService {
 
         PendingSignup saved = pendingSignupRepository.save(pending);
 
-        if (registrationMailService.isMailDeliveryEnabled()) {
+        if (registrationMailService.isOutgoingMailPossible()) {
             registrationMailService.sendVerificationCodeAsync(fullName, email, code);
         } else {
             log.warn(
-                    "SMTP kapalı — kod e-postayla gitmez. e-posta={} doğrulama_kodu={} (API/docker loglarına bakın; üretimde SMTP açın).",
+                    "Dış posta yok (SMTP + Brevo API) — kod e-postayla gitmez. e-posta={} doğrulama_kodu={} (API loglarına bakın; BREVO_API_KEY veya SMTP ekleyin).",
                     email,
                     code);
         }
@@ -256,7 +256,7 @@ public class UserService {
             return;
         }
         String email = emailRaw.trim().toLowerCase();
-        boolean smtp = registrationMailService.isMailDeliveryEnabled();
+        boolean canSend = registrationMailService.isOutgoingMailPossible();
 
         Optional<PendingSignup> pendingOpt = pendingSignupRepository.findByEmail(email);
         if (pendingOpt.isPresent()) {
@@ -265,15 +265,15 @@ public class UserService {
             p.setVerificationCode(newCode);
             p.setExpiresAt(Instant.now().plus(48, ChronoUnit.HOURS));
             pendingSignupRepository.save(p);
-            if (smtp) {
+            if (canSend) {
                 registrationMailService.sendVerificationCodeAsync(p.getFullName(), email, newCode);
             } else {
-                log.warn("SMTP kapalı — yeniden gönderilen kod. e-posta={} kod={}", email, newCode);
+                log.warn("Dış posta yok — yeniden gönderilen kod yalnızca logda. e-posta={} kod={}", email, newCode);
             }
             return;
         }
 
-        if (!smtp) {
+        if (!canSend) {
             return;
         }
 
@@ -655,10 +655,10 @@ public class UserService {
         user.setPasswordResetExpiresAt(Instant.now().plus(1, ChronoUnit.HOURS));
         userRepository.save(user);
 
-        if (registrationMailService.isMailDeliveryEnabled()) {
+        if (registrationMailService.isOutgoingMailPossible()) {
             registrationMailService.sendPasswordResetCodeAsync(user.getFullName(), email, code);
         } else {
-            log.warn("SMTP kapalı — şifre sıfırlama kodu. e-posta={} kod={}", email, code);
+            log.warn("Dış posta yok (SMTP + Brevo API) — şifre sıfırlama kodu. e-posta={} kod={}", email, code);
         }
     }
 
